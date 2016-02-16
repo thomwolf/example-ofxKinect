@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>6445F06A-836A-4F77-83C5-D69BD700E65E</string>
+	<key>IDESourceControlProjectName</key>
+	<string>example-ofxKinect</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>2268661E-C0BF-46A9-A75A-3799A6EC4E79</key>
+		<string>https://github.com/thomwolf/ofxProjectorKinectCalibration.git</string>
+		<key>F6685A47-0901-4A3C-A3C1-731BC0B71369</key>
+		<string>https://github.com/thomwolf/ofxSecondWindow.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>example-ofxKinect/example-ofxKinect.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>2268661E-C0BF-46A9-A75A-3799A6EC4E79</key>
+		<string>../../..</string>
+		<key>F6685A47-0901-4A3C-A3C1-731BC0B71369</key>
+		<string>../../../../ofxSecondWindow</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/thomwolf/ofxProjectorKinectCalibration.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>2268661E-C0BF-46A9-A75A-3799A6EC4E79</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>2268661E-C0BF-46A9-A75A-3799A6EC4E79</string>
+			<key>IDESourceControlWCCName</key>
+			<string>ofxProjectorKinectCalibration</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>F6685A47-0901-4A3C-A3C1-731BC0B71369</string>
+			<key>IDESourceControlWCCName</key>
+			<string>ofxSecondWindow</string>
+		</dict>
+	</array>
+</dict>
+</plist>
