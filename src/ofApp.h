@@ -12,6 +12,8 @@
 
 #include "ofxXmlSettings.h"
 
+#include "ColorMap.h"
+
 using namespace cv;
 
 class ofApp : public ofBaseApp{
@@ -49,7 +51,8 @@ private:
         ofxKinect                   kinect;
         ofxCvColorImage				kinectColorImage;
         ofxCvGrayscaleImage			kinectDepthImage;
-        
+        ofxCvColorImage				kinectHeightMapImage;
+    
         RGBDCamCalibWrapper*		kinectWrapper;
         
         // calibration
@@ -66,6 +69,7 @@ private:
         float                       highThresh;
         int							blur;
         float                       maxReprojError;
+    ColorMap                    colormap;
     
         // settings
         int                         projectorWidth;

@@ -62,6 +62,9 @@ void ofApp::setup(){
 //    secondWindow.setup("Projector", 500, 50, projectorWidth, projectorHeight, false);
     
     // setup the gui
+	/* Load the height color map: */
+	colormap.load("HeightColorMap.yml");
+
     setupGui();
 }
 
@@ -74,6 +77,7 @@ void ofApp::update(){
 	ofxCv::threshold(thresholdedKinect, chessboardThreshold);
 	thresholdedKinect.update();
 	kinectDepthImage.setFromPixels(kinect.getDepthPixels());
+	kinectHeightMapImage = colormap(kinectDepthImage);
 	
     // if calibration active
     if (enableCalibration) {
@@ -166,7 +170,7 @@ void ofApp::drawProj(ofEventArgs & args){
 		ofClear(0);
 		ofSetColor(255, 190, 70);
 		
-		for (int i = 0; i < contourFinder.size(); i++) {
+/*		for (int i = 0; i < contourFinder.size(); i++) {
 			
 			ofPolyline blobContour = contourFinder.getPolyline(i);
 			if(!blobContour.isClosed()){
@@ -181,7 +185,7 @@ void ofApp::drawProj(ofEventArgs & args){
 			}
 			ofEndShape();
 			
-		}
+		}*/
 		ofSetColor(255);
 	} else {
 		ofBackground(255);

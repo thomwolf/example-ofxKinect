@@ -66,6 +66,7 @@
 		B712B9FD1C6E3D0E00D3C52F /* ofxSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B712B9F21C6E3D0E00D3C52F /* ofxSlider.cpp */; };
 		B712B9FE1C6E3D0E00D3C52F /* ofxSliderGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B712B9F41C6E3D0E00D3C52F /* ofxSliderGroup.cpp */; };
 		B712B9FF1C6E3D0E00D3C52F /* ofxToggle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B712B9F61C6E3D0E00D3C52F /* ofxToggle.cpp */; };
+		B718468F1C73B86A00AAEA3D /* ColorMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B718468D1C73B86A00AAEA3D /* ColorMap.cpp */; };
 		B906C0D0B435A2FBCFBB7AE1 /* KinectProjectorOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4850F8CA4F961A3CFA83D7E /* KinectProjectorOutput.cpp */; };
 		BBAB23CB13894F3D00AA2426 /* GLUT.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = BBAB23BE13894E4700AA2426 /* GLUT.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		BFEFCE32DAFE10A8EB519F6C /* ofxUISpacer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30CBAAEC78A0E9EBBB10A05A /* ofxUISpacer.cpp */; };
@@ -342,6 +343,8 @@
 		B712B9F51C6E3D0E00D3C52F /* ofxSliderGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxSliderGroup.h; sourceTree = "<group>"; };
 		B712B9F61C6E3D0E00D3C52F /* ofxToggle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxToggle.cpp; sourceTree = "<group>"; };
 		B712B9F71C6E3D0E00D3C52F /* ofxToggle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxToggle.h; sourceTree = "<group>"; };
+		B718468D1C73B86A00AAEA3D /* ColorMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorMap.cpp; sourceTree = "<group>"; };
+		B718468E1C73B86A00AAEA3D /* ColorMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorMap.h; sourceTree = "<group>"; };
 		B7BF51E8E757FF8A162D3662 /* lsh_index.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = lsh_index.h; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/flann/lsh_index.h; sourceTree = SOURCE_ROOT; };
 		B8427966039B53A0FE69C1F0 /* cxcore.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = cxcore.h; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv/cxcore.h; sourceTree = SOURCE_ROOT; };
 		B848522CCA3A75ABD56752C9 /* ofxUIImageToggle.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = ofxUIImageToggle.cpp; path = ../../../addons/ofxUI/src/ofxUIImageToggle.cpp; sourceTree = SOURCE_ROOT; };
@@ -1166,6 +1169,8 @@
 		E4B69E1C0A3A1BDC003C02F2 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				B718468D1C73B86A00AAEA3D /* ColorMap.cpp */,
+				B718468E1C73B86A00AAEA3D /* ColorMap.h */,
 				E4B69E1D0A3A1BDC003C02F2 /* main.cpp */,
 				E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */,
 				E4B69E1F0A3A1BDC003C02F2 /* ofApp.h */,
@@ -1358,6 +1363,7 @@
 				63B57AC5BF4EF088491E0317 /* ofxXmlSettings.cpp in Sources */,
 				933A2227713C720CEFF80FD9 /* tinyxml.cpp in Sources */,
 				9D44DC88EF9E7991B4A09951 /* tinyxmlerror.cpp in Sources */,
+				B718468F1C73B86A00AAEA3D /* ColorMap.cpp in Sources */,
 				5A4349E9754D6FA14C0F2A3A /* tinyxmlparser.cpp in Sources */,
 				B6840996567E78436F7ECFAB /* ETF.cpp in Sources */,
 				F76B4A79BD8DE4854141CB47 /* fdog.cpp in Sources */,
