@@ -80,7 +80,7 @@ class ColorMap
 		return entries[index];
 		}
 	Color operator()(double scalar) const; // Returns the color for a scalar value using linear interpolation
-    ofxCvColorImage operator()(ofxCvGrayscaleImage) const; // return color image from greyscale image
+    ofxCvColorImage convertColor(ofxCvGrayscaleImage); // return color image from greyscale image
         
 	};
 

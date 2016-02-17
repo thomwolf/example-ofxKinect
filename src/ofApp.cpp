@@ -77,7 +77,7 @@ void ofApp::update(){
 	ofxCv::threshold(thresholdedKinect, chessboardThreshold);
 	thresholdedKinect.update();
 	kinectDepthImage.setFromPixels(kinect.getDepthPixels());
-	kinectHeightMapImage = colormap(kinectDepthImage);
+//	kinectHeightMapImage = colormap.convertColor(kinectDepthImage);
 	
     // if calibration active
     if (enableCalibration) {

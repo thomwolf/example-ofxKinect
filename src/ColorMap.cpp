@@ -346,29 +346,18 @@ ColorMap::Color ColorMap::operator()(double scalar) const
 
 ofxCvColorImage ColorMap::operator()(ofxCvGrayscaleImage input) const // return color image from greyscale image
 {
+	ofPixelsRef pixels = input.getPixels();
     ofxCvColorImage output;
-    output.setFromPixels(input.getPixels());
+    
     int i = 0;
     while ( i < input.getPixels().size() ) {
-        output.getPixels()[i] = operator()(output.getPixels()[i]);
+        char c = pixels[i];
+        ofColor color = operator()(c);
+        pixels.setColor(color);
         i++;
     }
-	input.getPixels();
-    /* Check for out-of-bounds arguments: */
-	if(scalar<=min)
-		return entries[0];
-	else if(scalar>=max)
-		return entries[numEntries-1];
+    output.setFromPixels(pixels);
 	
-	/* Calculate the base map index: */
-	scalar=scalar*factor-offset;
-	int index=int(floor(scalar));
-	if(index==numEntries-1)
-		--index;
-	scalar-=double(index);
-	Color result;
-    result=entries[index]*(1.0-scalar)+entries[index+1]*scalar;
-	
-	return result;
+	return output;
 }
 
