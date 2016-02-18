@@ -7,8 +7,9 @@
 #extension GL_ARB_texture_rectangle : enable
 #extension GL_EXT_gpu_shader4 : enable
 
-uniform sampler2DRect image;
-uniform sampler2DRect colormap;		//second image
+uniform sampler2DRect texture0;
+uniform sampler2DRect texture1;  //Kinect image
+uniform sampler2DRect texture2; // colormap
 
 #define N (256)
 uniform float specArray[N];

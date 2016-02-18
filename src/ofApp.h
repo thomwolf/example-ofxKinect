@@ -18,66 +18,68 @@ using namespace cv;
 
 class ofApp : public ofBaseApp{
 
-	public:
-		void setup();
- //   void setupGui();
-		void update();
-		void draw();
+public:
+    void setup();
+    //   void setupGui();
+    void update();
+    void draw();
     void drawProj(ofEventArgs & args);
-      void exit();
+    void exit();
 
-		void keyPressed(int key);
-		void keyReleased(int key);
-		void mouseMoved(int x, int y );
-		void mouseDragged(int x, int y, int button);
-		void mousePressed(int x, int y, int button);
-		void mouseReleased(int x, int y, int button);
-		void windowResized(int w, int h);
-		void dragEvent(ofDragInfo dragInfo);
-		void gotMessage(ofMessage msg);
+    void keyPressed(int key);
+    void keyReleased(int key);
+    void mouseMoved(int x, int y );
+    void mouseDragged(int x, int y, int button);
+    void mousePressed(int x, int y, int button);
+    void mouseReleased(int x, int y, int button);
+    void windowResized(int w, int h);
+    void dragEvent(ofDragInfo dragInfo);
+    void gotMessage(ofMessage msg);
     
     // gui
     void setupGui();
     ofxUISuperCanvas *          gui;
-    ofxUISuperCanvas *			guiImageSettings;
+    ofxUISuperCanvas *		guiImageSettings;
     void guiEvent(ofxUIEventArgs &e);
     void guiUpdateLabels();
     //ofxPanel gui;
 
 private:
-        
-        // kinect & the wrapper
-        
-        ofxKinect                   kinect;
-        ofxCvColorImage				kinectColorImage;
-        ofxCvGrayscaleImage			kinectDepthImage;
-        ofxCvColorImage				kinectHeightMapImage;
+
+    // kinect & the wrapper
+
+    ofxKinect                   kinect;
+    ofxCvColorImage		kinectColorImage;
+    ofxCvGrayscaleImage		kinectGreyscaledImage;
+    ofShortPixels		kinectDepthImage;
     
-        RGBDCamCalibWrapper*		kinectWrapper;
-        
-        // calibration
-        KinectProjectorCalibration	kinectProjectorCalibration;
-        bool						enableCalibration;
-        ofxCv::ContourFinder        contourFinder;
-        
-        // output
-        KinectProjectorOutput		kinectProjectorOutput;
-        bool						enableTestmode;
-        float                       chessboardThreshold;
-        ofImage						thresholdedKinect;
-        float                       lowThresh;
-        float                       highThresh;
-        int							blur;
-        float                       maxReprojError;
+    RGBDCamCalibWrapper*	kinectWrapper;
+
+    // calibration
+    KinectProjectorCalibration	kinectProjectorCalibration;
+    bool			enableCalibration;
+    ofxCv::ContourFinder        contourFinder;
+
+    // output
+    KinectProjectorOutput	kinectProjectorOutput;
+    bool			enableTestmode;
+    float                       chessboardThreshold;
+    ofImage			thresholdedKinect;
+    float                       lowThresh;
+    float                       highThresh;
+    int				blur;
+    float                       maxReprojError;
     ColorMap                    colormap;
+    ofShader                    shader;            //Shader
+    ofFbo                       fbo;			//Buffer for intermediate drawing
+
+    // settings
+    int                         projectorWidth;
+    int                         projectorHeight;
+
+    ofParameterGroup labels;
     
-        // settings
-        int                         projectorWidth;
-        int                         projectorHeight;
-        
-        ofParameterGroup labels;
-    
-        // second window
-//        ofxSecondWindow             secondWindow;
-		
+    // second window
+    //        ofxSecondWindow             secondWindow;
+
 };

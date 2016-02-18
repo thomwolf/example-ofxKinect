@@ -239,6 +239,7 @@ heightMapColors.push_back( ofColor(255, 255, 255));
 	numKeys = heightMapKeys.size();
     int sNumEntries =256;
     setNumEntries(sNumEntries);
+    entries.allocate(sNumEntries, 1, OF_IMAGE_COLOR);
 	/* Evaluate the color function: */
 	for(int i=0;i<numKeys;++i)
     {
@@ -263,15 +264,14 @@ heightMapColors.push_back( ofColor(255, 255, 255));
         {
 			/* Interpolate linearly: */
 			float w=float((val-heightMapKeys[l])/(heightMapKeys[r]-heightMapKeys[l]));
-            entries[i]=heightMapColors[l]*(1.0f-w)+heightMapColors[r]*w;
+                        entries.setColor(i,heightMapColors[l]*(1.0f-w)+heightMapColors[r]*w);
         }
 		else
         {
 			/* There is nothing to the right of the last key, so no need to interpolate: */
-			entries[i]=heightMapColors[numKeys-1];
+                        entries.setColor(i,heightMapColors[numKeys-1]);
         }
-        pix.
-        tex.loadData(<#const ofPixels &pix#>)
+        tex.setFromPixels(entries, sNumEntries, 1, OF_IMAGE_COLOR);
     }
 	return true;
 }
@@ -346,20 +346,8 @@ ColorMap::Color ColorMap::operator()(double scalar) const
 	return result;
 	}
 
-ofxCvColorImage ColorMap::operator()(ofxCvGrayscaleImage input) const // return color image from greyscale image
+ofImage ColorMap::getTexture(void)  // return color map
 {
-	ofPixelsRef pixels = input.getPixels();
-    ofxCvColorImage output;
-    
-    int i = 0;
-    while ( i < input.getPixels().size() ) {
-        char c = pixels[i];
-        ofColor color = operator()(c);
-        pixels.setColor(color);
-        i++;
-    }
-    output.setFromPixels(pixels);
-	
-	return output;
+        return tex;
 }
 

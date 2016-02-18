@@ -63,7 +63,11 @@ void ofApp::setup(){
     
     // setup the gui
 	/* Load the height color map: */
-	colormap.load("HeightColorMap.yml");
+    shader.load( "shaderVert.c", "shaderFrag.c" );
+    kinectDepthImage.allocate(640, 480, 1);
+    fbo.allocate( 800, 600);
+
+    colormap.load("HeightColorMap.yml");
 
     setupGui();
 }
@@ -76,8 +80,9 @@ void ofApp::update(){
 	convertColor(kinectColorImage, thresholdedKinect, CV_RGB2GRAY);
 	ofxCv::threshold(thresholdedKinect, chessboardThreshold);
 	thresholdedKinect.update();
-	kinectDepthImage.setFromPixels(kinect.getDepthPixels());
-//	kinectHeightMapImage = colormap.convertColor(kinectDepthImage);
+        kinectDepthImage.setFromPixels(kinect.getRawDepthPixels());
+
+//	kinectGreyscaledImage = colormap.convertColor(kinectDepthImage);
 	
     // if calibration active
     if (enableCalibration) {
@@ -187,7 +192,33 @@ void ofApp::drawProj(ofEventArgs & args){
 			
 		}*/
 		ofSetColor(255);
-	} else {
+
+                //1. Drawing into fbo buffer
+                fbo.begin();		//Start drawing into buffer
+                //Draw something here just like it is drawn on the screen
+                ofBackground(0, 0, 0 );
+                fbo.end();			//End drawing into buffer
+
+                //2. Drawing to screen through the shader
+                shader.begin();
+                shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
+                shader.setUniformTexture( "texture2", colormap.getTexture(), 1 ); //"1" means that it is texture 1
+
+                shader.setUniformTexture( "colormap", spectrumImage.getTextureReference(), 3 ); //"2" means that it is texture 2
+
+                //shader.setUniform1i( "N", N );
+                shader.setUniform1fv( "specArray", spectrum, N );
+
+                //Draw image through shader
+                ofSetColor( 255, 255, 255 );
+                fbo.draw( 0, 0 );
+
+                //ofSetColor( 255, 255, 255, 128 );
+                //fbo2.draw( 0, 0 );
+
+                shader.end();
+
+        } else {
 		ofBackground(255);
 	}
 }
