@@ -31,6 +31,8 @@ class ColorMap
 	private:
 	int numEntries; // Number of colors in the map
 	Color* entries; // Array of RGBA entries
+    ofPixels pix;
+    ofTexture tex;
 	double min,max; // The scalar value range
 	double factor,offset; // The scaling factors to map data values to indices
 	

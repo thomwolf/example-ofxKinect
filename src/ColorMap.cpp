@@ -270,6 +270,8 @@ heightMapColors.push_back( ofColor(255, 255, 255));
 			/* There is nothing to the right of the last key, so no need to interpolate: */
 			entries[i]=heightMapColors[numKeys-1];
         }
+        pix.
+        tex.loadData(<#const ofPixels &pix#>)
     }
 	return true;
 }
