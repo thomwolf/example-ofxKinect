@@ -12,7 +12,6 @@ void ofApp::setup(){
 	ofSetVerticalSync(true);
     ofSetLogLevel(OF_LOG_VERBOSE);
     ofSetLogLevel("ofThread", OF_LOG_WARNING);
- //   ofSetWindowTitle("Kinect Projector Calibration demo");
 	
 	// settings and defaults
 	projectorWidth = 800;
@@ -26,12 +25,14 @@ void ofApp::setup(){
     kinect.open();
     int kinectWidth = kinect.getWidth();
     int kinectHeight = kinect.getHeight();
+	kinect.setDepthClipping(500, 1000);
     
     // allocations
     kinectColorImage.allocate(kinectWidth, kinectHeight);
-    kinectDepthImage.allocate(kinectWidth, kinectHeight);
+    kinectDepthImage.allocate(kinectWidth, kinectHeight, OF_IMAGE_GRAYSCALE);
+	kinectColoredDepth.allocate(kinectWidth, kinectHeight, OF_IMAGE_COLOR);
 	thresholdedKinect.allocate(kinectWidth, kinectHeight, OF_IMAGE_GRAYSCALE);
-    
+	
     // contourFinder config
 	chessboardThreshold = 60;
 	lowThresh = 0.2;
@@ -56,19 +57,18 @@ void ofApp::setup(){
 	
     // sets the output
     kinectProjectorOutput.setup(kinectWrapper, projectorWidth, projectorHeight);
-    //kinectProjectorOutput.load("kinectProjector.yml");
+    kinectProjectorOutput.load("kinectProjector.yml");
     
     // setup the second window
-//    secondWindow.setup("Projector", 500, 50, projectorWidth, projectorHeight, false);
+	//    secondWindow.setup("Projector", 500, 50, projectorWidth, projectorHeight, false);
     
     // setup the gui
-	/* Load the height color map: */
-    shader.load( "shaderVert.c", "shaderFrag.c" );
-    kinectDepthImage.allocate(640, 480, 1);
-    fbo.allocate( 800, 600);
-
+	//    shader.load( "shaderVert.c", "shaderFrag.c" );
+	//    kinectDepthImage.allocate(640, 480, 1);
+	//    fbo.allocate( 800, 600);
+	
     colormap.load("HeightColorMap.yml");
-
+	
     setupGui();
 }
 
@@ -76,17 +76,38 @@ void ofApp::setup(){
 void ofApp::update(){
     
 	kinect.update();
-	kinectColorImage.setFromPixels(kinect.getPixels());
-	convertColor(kinectColorImage, thresholdedKinect, CV_RGB2GRAY);
-	ofxCv::threshold(thresholdedKinect, chessboardThreshold);
-	thresholdedKinect.update();
-        kinectDepthImage.setFromPixels(kinect.getRawDepthPixels());
-
-//	kinectGreyscaledImage = colormap.convertColor(kinectDepthImage);
-	
+	if(kinect.isFrameNew()){
+		//framefilter.filterThreadMethod(kinect.getRawDepthPixels());
+		
+		kinectColorImage.setFromPixels(kinect.getPixels());
+		/*	convertColor(kinectColorImage, thresholdedKinect, CV_RGB2GRAY);
+		 ofxCv::threshold(thresholdedKinect, chessboardThreshold);
+		 thresholdedKinect.update();
+		 */
+		kinectDepthImage.setFromPixels(kinect.getDepthPixels());
+		
+		ofPixels pixels = kinectColoredDepth.getPixels();
+		ofPixels depth = kinectDepthImage.getPixels();
+		
+		depth.setImageType(OF_IMAGE_GRAYSCALE);
+		pixels.setImageType(OF_IMAGE_COLOR);
+		
+		int w = kinectColoredDepth.getWidth();
+		int h = kinectColoredDepth.getHeight();
+		mindepth = 0;
+		maxdepth = 0;
+		for (int i = 0; i < w; i++){
+			for (int j = 0; j < h; j++){
+				int scalar = depth[j * w + i];
+				ofColor value = colormap(scalar);
+				pixels.setColor(i, j, value);
+			}
+		}
+		kinectColoredDepth.setFromPixels(pixels);
+	}
     // if calibration active
     if (enableCalibration) {
-
+		
         // do a very-fast check if chessboard is found
         bool stableBoard = kinectProjectorCalibration.doFastCheck();
         
@@ -98,13 +119,9 @@ void ofApp::update(){
     
     // if the test mode is activated, the settings are loaded automatically (see gui function)
     if (enableTestmode) {
-        
-        // find our contours in the label image
-		if (highThresh != 1.0) cvThreshold(kinectDepthImage.getCvImage(), kinectDepthImage.getCvImage(), highThresh * 255, 255, CV_THRESH_TOZERO_INV);
-		if (lowThresh != 0.0) cvThreshold(kinectDepthImage.getCvImage(), kinectDepthImage.getCvImage(), lowThresh * 255, 255, CV_THRESH_TOZERO);
-		contourFinder.findContours(kinectDepthImage);
 		
-    }
+		
+	}
     // update the gui labels with the result of our calibraition
     guiUpdateLabels();
 }
@@ -117,6 +134,9 @@ void ofApp::draw(){
 	ofTranslate(320,0);
 	ofDrawBitmapString("Kinect Input",0,20);
 	kinectColorImage.draw(0,40,320,240);
+	kinectDepthImage.draw(0,20+240+40+40,320,240);
+	kinectColoredDepth.draw(320+20,40,320,240);
+	
 	//ofCircle(160, 160, 5); // Kinect center
 	
 	//if calibrating, then we draw our fast check results here
@@ -174,51 +194,49 @@ void ofApp::drawProj(ofEventArgs & args){
 	} else if (enableTestmode) {
 		ofClear(0);
 		ofSetColor(255, 190, 70);
-		
-/*		for (int i = 0; i < contourFinder.size(); i++) {
-			
-			ofPolyline blobContour = contourFinder.getPolyline(i);
-			if(!blobContour.isClosed()){
-				blobContour.close();
-			}
-			
-			ofBeginShape();
-			for (int j = 0; j < blobContour.size() - 1; j++) {
-				ofPoint currVertex = kinectProjectorOutput.projectFromDepthXY(blobContour[j]);
-				ofVertex(currVertex.x, currVertex.y);
-				
-			}
-			ofEndShape();
-			
-		}*/
+		kinectColoredDepth.ofBaseDraws::draw(0, 0, 800, 600);
+		/*		for (int i = 0; i < contourFinder.size(); i++) {
+		 
+		 ofPolyline blobContour = contourFinder.getPolyline(i);
+		 if(!blobContour.isClosed()){
+		 blobContour.close();
+		 }
+		 
+		 ofBeginShape();
+		 for (int j = 0; j < blobContour.size() - 1; j++) {
+		 ofPoint currVertex = kinectProjectorOutput.projectFromDepthXY(blobContour[j]);
+		 ofVertex(currVertex.x, currVertex.y);
+		 
+		 }
+		 ofEndShape();
+		 
+		 }*/
 		ofSetColor(255);
-
-                //1. Drawing into fbo buffer
-                fbo.begin();		//Start drawing into buffer
-                //Draw something here just like it is drawn on the screen
-                ofBackground(0, 0, 0 );
-                fbo.end();			//End drawing into buffer
-
-                //2. Drawing to screen through the shader
-                shader.begin();
-                shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
-                shader.setUniformTexture( "texture2", colormap.getTexture(), 1 ); //"1" means that it is texture 1
-
-                shader.setUniformTexture( "colormap", spectrumImage.getTextureReference(), 3 ); //"2" means that it is texture 2
-
-                //shader.setUniform1i( "N", N );
-                shader.setUniform1fv( "specArray", spectrum, N );
-
-                //Draw image through shader
-                ofSetColor( 255, 255, 255 );
-                fbo.draw( 0, 0 );
-
-                //ofSetColor( 255, 255, 255, 128 );
-                //fbo2.draw( 0, 0 );
-
-                shader.end();
-
-        } else {
+		
+		//1. Drawing into fbo buffer
+		/*		fbo.begin();		//Start drawing into buffer
+		 //Draw something here just like it is drawn on the screen
+		 ofBackground(0, 0, 0 );
+		 fbo.end();			//End drawing into buffer
+		 
+		 //2. Drawing to screen through the shader
+		 shader.begin();
+		 shader.setUniformTexture( "texture1", kinectDepthImage.getTexture(), 1 ); //"1" means that it is texture 1
+		 shader.setUniformTexture( "texture2", colormap.getTexture(), 1 ); //"2" means that it is texture 2
+		 
+		 //shader.setUniform1i( "N", N );
+		 shader.setUniform1fv( "specArray", spectrum, N );
+		 
+		 //Draw image through shader
+		 ofSetColor( 255, 255, 255 );
+		 fbo.draw( 0, 0 );
+		 
+		 //ofSetColor( 255, 255, 255, 128 );
+		 //fbo2.draw( 0, 0 );
+		 
+		 shader.end();
+		 */
+	} else {
 		ofBackground(255);
 	}
 }
@@ -238,42 +256,42 @@ void ofApp::keyPressed(int key){
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
-
+	
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y ){
-
+	
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
-
+	
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-
+	
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
-
+	
 }
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h){
-
+	
 }
 
 //--------------------------------------------------------------
 void ofApp::gotMessage(ofMessage msg){
-
+	
 }
 
 //--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){ 
-
+void ofApp::dragEvent(ofDragInfo dragInfo){
+	
 }
 
 //--------------------------------------------------------------
@@ -352,10 +370,12 @@ void ofApp::setupGui() {
 void ofApp::guiUpdateLabels() {
     ofxUILabel* l;
     l = (ofxUILabel*) gui->getWidget("errorLabel");
-    l->setLabel("Avg Reprojection error: " + ofToString(kinectProjectorCalibration.getReprojectionError(), 2));
+	//    l->setLabel("Avg Reprojection error: " + ofToString(kinectProjectorCalibration.getReprojectionError(), 2));
+    l->setLabel("MaxDepth: " + ofToString(maxdepth));
     
     l = (ofxUILabel*) gui->getWidget("capturesLabel");
-    l->setLabel("Number of captures: " + ofToString(kinectProjectorCalibration.getDatabaseSize()));
+	//    l->setLabel("Number of captures: " + ofToString(kinectProjectorCalibration.getDatabaseSize()));
+    l->setLabel("MinDepth: " + ofToString(mindepth));
 }
 
 //--------------------------------------------------------------

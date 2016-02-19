@@ -10,11 +10,89 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ColorMap.cpp"
-            timestampString = "477353341.503996"
+            timestampString = "477532917.982719"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "213"
-            endingLineNumber = "213"
+            startingLineNumber = "95"
+            endingLineNumber = "95"
+            landmarkName = "ColorMap::load(string filename, bool absolute)"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "src/ColorMap.cpp"
+            timestampString = "477537563.046657"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "273"
+            endingLineNumber = "273">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "src/ColorMap.cpp"
+            timestampString = "477537563.046657"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "268"
+            endingLineNumber = "268"
+            landmarkName = "ColorMap::getTexture(void)"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "src/ofApp.cpp"
+            timestampString = "477537563.046657"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "87"
+            endingLineNumber = "87"
+            landmarkName = "ofApp::update()"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "src/ColorMap.cpp"
+            timestampString = "477537563.046657"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "267"
+            endingLineNumber = "267"
+            landmarkName = "ColorMap::getTexture(void)"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "src/ColorMap.cpp"
+            timestampString = "477533273.911607"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "108"
+            endingLineNumber = "108"
             landmarkName = "ColorMap::load(string filename, bool absolute)"
             landmarkType = "5">
             <Locations>
@@ -25,12 +103,12 @@
                   symbolName = "ColorMap::load(std::__1::basic_string&lt;char, std::__1::char_traits&lt;char&gt;, std::__1::allocator&lt;char&gt; &gt;, bool)"
                   moduleName = "example_ofxKinectDebug"
                   urlString = "file://localhost/Users/thomaswolf/of_v0.9.2_osx_release/apps/myApps/example-ofxKinect/src/ColorMap.cpp"
-                  timestampString = "477350941.690476"
+                  timestampString = "477534327.495244"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "231"
-                  endingLineNumber = "231"
-                  offsetFromSymbolStart = "3242">
+                  startingLineNumber = "108"
+                  endingLineNumber = "108"
+                  offsetFromSymbolStart = "3886">
                </Location>
                <Location
                   shouldBeEnabled = "No"
@@ -39,12 +117,12 @@
                   symbolName = "ColorMap::load(std::__1::basic_string&lt;char, std::__1::char_traits&lt;char&gt;, std::__1::allocator&lt;char&gt; &gt;, bool)"
                   moduleName = "example_ofxKinectDebug"
                   urlString = "file://localhost/Users/thomaswolf/of_v0.9.2_osx_release/apps/myApps/example-ofxKinect/src/ColorMap.cpp"
-                  timestampString = "477350941.69098"
+                  timestampString = "477534327.495768"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "231"
-                  endingLineNumber = "231"
-                  offsetFromSymbolStart = "3619">
+                  startingLineNumber = "108"
+                  endingLineNumber = "108"
+                  offsetFromSymbolStart = "4963">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -56,12 +134,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ColorMap.cpp"
-            timestampString = "477353341.503996"
+            timestampString = "477537563.046657"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "233"
-            endingLineNumber = "233"
-            landmarkName = "ColorMap::load(string filename, bool absolute)"
+            startingLineNumber = "245"
+            endingLineNumber = "245"
+            landmarkName = "ColorMap::operator()(int scalar)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -71,29 +149,29 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "src/ColorMap.cpp"
-            timestampString = "477395360.845831"
+            filePath = "src/ofApp.cpp"
+            timestampString = "477537563.046657"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "357"
-            endingLineNumber = "357"
-            landmarkName = "ColorMap::operator()(ofxCvGrayscaleImage input)"
+            startingLineNumber = "103"
+            endingLineNumber = "103"
+            landmarkName = "ofApp::update()"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "src/ColorMap.cpp"
-            timestampString = "477396322.74141"
+            filePath = "src/ofApp.cpp"
+            timestampString = "477537563.046657"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "352"
-            endingLineNumber = "352"
-            landmarkName = "ColorMap::operator()(ofxCvGrayscaleImage input)"
+            startingLineNumber = "105"
+            endingLineNumber = "105"
+            landmarkName = "ofApp::update()"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

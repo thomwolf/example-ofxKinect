@@ -21,7 +21,7 @@ void main(){
     vec2 pos = gl_TexCoord[0].st;     
 	
 	
-    vec4 color0 = texture2DRect(image, pos);
+    vec4 color0 =  texture2DRect(texture1, pos);    // depth value
 	vec4 color1 =  texture2DRect(texture1, pos);	//colors converted to 0..1
 
 

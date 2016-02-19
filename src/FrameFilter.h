@@ -24,10 +24,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #ifndef FRAMEFILTER_INCLUDED
 #define FRAMEFILTER_INCLUDED
 
-#include <Threads/Thread.h>
+/*#include <Threads/Thread.h>
 #include <Threads/MutexCond.h>
 #include <Kinect/FrameBuffer.h>
-#include <Kinect/FrameSource.h>
+#include <Kinect/FrameSource.h>*/
+#include "ofMain.h"
 
 /* Forward declarations: */
 namespace Misc {
@@ -41,28 +42,42 @@ template <class ScalarParam,int dimensionParam>
 class ProjectiveTransformation;
 }
 
-class FrameFilter
-	{
+class FrameFilter: public ofThread {
 	/* Embedded classes: */
 	public:
 	typedef unsigned short RawDepth; // Data type for raw depth values
 	typedef float FilteredDepth; // Data type for filtered depth values
-	typedef Misc::FunctionCall<const Kinect::FrameBuffer&> OutputFrameFunction; // Type for functions called when a new output frame is ready
+/*	typedef Misc::FunctionCall<const Kinect::FrameBuffer&> OutputFrameFunction; // Type for functions called when a new output frame is ready
 	typedef Geometry::Plane<double,3> Plane;
 	typedef Geometry::ProjectiveTransformation<double,3> PTransform;
 	typedef Kinect::FrameSource::DepthCorrection::PixelCorrection PixelDepthCorrection; // Type for per-pixel depth correction factors
-	
+ */
+        FrameFilter(const unsigned int sSize[2],int sNumAveragingSlots);
+        ~FrameFilter();
+        void analyze(ofShortPixels & frame);
+        void update();
+        bool isFrameNew();
+        ofShortPixels & getPixels();
+        ofTexture & getTexture();
+        void draw(float x, float y);
+        void draw(float x, float y, float w, float h);
+
 	/* Elements: */
 	private:
-	unsigned int size[2]; // Width and height of processed frames
-	PixelDepthCorrection* pixelDepthCorrection; // Buffer of per-pixel depth correction coefficients
-	Threads::MutexCond inputCond; // Condition variable to signal arrival of a new input frame
-	Kinect::FrameBuffer inputFrame; // The most recent input frame
-	unsigned int inputFrameVersion; // Version number of input frame
+        void threadedFunction();
+        ofThreadChannel<ofShortPixels> toAnalyze;
+        ofThreadChannel<ofShortPixels> analyzed;
+        ofShortPixels inputframe;
+        ofShortPixels outputframe;
+        ofTexture texture;
+        bool newFrame;
+
+        
+        unsigned int size[2]; // Width and height of processed frames
+		unsigned int inputFrameVersion; // Version number of input frame
 	volatile bool runFilterThread; // Flag to keep the background filtering thread running
-	Threads::Thread filterThread; // The background filtering thread
-	float minPlane[4]; // Plane equation of the lower bound of valid depth values in depth image space
-	float maxPlane[4]; // Plane equation of the upper bound of valid depth values in depth image space
+	float min; // lower bound of valid depth values in depth image space
+	float max; // upper bound of valid depth values in depth image space
 	int numAveragingSlots; // Number of slots in each pixel's averaging buffer
 	RawDepth* averagingBuffer; // Buffer to calculate running averages of each pixel's depth value
 	int averagingSlotIndex; // Index of averaging slot in which to store the next frame's depth values
@@ -74,28 +89,27 @@ class FrameFilter
 	float instableValue; // Value to assign to instable pixels if retainValids is false
 	bool spatialFilter; // Flag whether to apply a spatial filter to time-averaged depth values
 	float* validBuffer; // Buffer holding the most recent stable depth value for each pixel
-	Kinect::FrameBuffer outputFrame; // The most recently filtered output frame
-	OutputFrameFunction* outputFrameFunction; // Function called when a new output frame is ready
+//	Kinect::FrameBuffer outputFrame; // The most recently filtered output frame
+//	OutputFrameFunction* outputFrameFunction; // Function called when a new output frame is ready
 	
 	/* Private methods: */
 	void* filterThreadMethod(void); // Method for the background filtering thread
 	
 	/* Constructors and destructors: */
 	public:
-	FrameFilter(const unsigned int sSize[2],int sNumAveragingSlots,const PTransform& depthProjection,const Plane& basePlane); // Creates a filter for frames of the given size and the given running average length
+/*	FrameFilter(const unsigned int sSize[2],int sNumAveragingSlots,const PTransform& depthProjection,const Plane& basePlane); // Creates a filter for frames of the given size and the given running average length
 	~FrameFilter(void); // Destroys the frame filter
-	
+*/
 	/* Methods: */
-	void setDepthCorrection(const Kinect::FrameSource::DepthCorrection& newDepthCorrection); // Sets the frame filter's per-pixel depth correction coefficients
 	void setValidDepthInterval(unsigned int newMinDepth,unsigned int newMaxDepth); // Sets the interval of depth values considered by the depth image filter
-	void setValidElevationInterval(const PTransform& depthProjection,const Plane& basePlane,double newMinElevation,double newMaxElevation); // Sets the interval of elevations relative to the given base plane considered by the depth image filter
+	void setValidElevationInterval(double newMinElevation,double newMaxElevation); // Sets the interval of elevations relative to the given base plane considered by the depth image filter
 	void setStableParameters(unsigned int newMinNumSamples,unsigned int newMaxVariance); // Sets the statistical properties to consider a pixel stable
 	void setHysteresis(float newHysteresis); // Sets the stable value hysteresis envelope
 	void setRetainValids(bool newRetainValids); // Sets whether the filter retains previous stable values for instable pixels
 	void setInstableValue(float newInstableValue); // Sets the depth value to assign to instable pixels
 	void setSpatialFilter(bool newSpatialFilter); // Sets the spatial filtering flag
-	void setOutputFrameFunction(OutputFrameFunction* newOutputFrameFunction); // Sets the output function; adopts given functor object
-	void receiveRawFrame(const Kinect::FrameBuffer& newFrame); // Called to receive a new raw depth frame
+//	void setOutputFrameFunction(OutputFrameFunction* newOutputFrameFunction); // Sets the output function; adopts given functor object
+//	void receiveRawFrame(const Kinect::FrameBuffer& newFrame); // Called to receive a new raw depth frame*/
 	};
 
 #endif
