@@ -17,56 +17,73 @@ using namespace ofxCv;
 using namespace cv;
 class ColorMap
 {
-	/* Embedded classes: */
+    /* Embedded classes: */
 public:
-	typedef ofColor Color; // Type of color entries
-	
-	enum CreationTypes // Types for automatic palette generation
+    typedef ofColor Color; // Type of color entries
+
+    enum CreationTypes // Types for automatic palette generation
     {
-		GREYSCALE=0x1,RAINBOW=0x2,
-		CONSTANT_ALPHA=0x4,RAMP_ALPHA=0x8
+        GREYSCALE=0x1,RAINBOW=0x2,
+        CONSTANT_ALPHA=0x4,RAMP_ALPHA=0x8
     };
-	
-	/* Elements: */
+
+    /* Elements: */
 private:
-	int numEntries; // Number of colors in the map
+    // Colorkeys
+    int numKeys;
+    std::vector<ofColor> heightMapColors; // Color keys
+    std::vector<double> heightMapKeys;  // Height keys
+
+    //Colormap entries
+    int numEntries; // Number of colors in the map
     ofPixels entries; // Array of RGBA entries
     ofImage tex;
-    
-	double min,max; // The scalar value range
-	double factor,offset; // The scaling factors to map data values to indices
-	
-	/* Private methods: */
-	void setNumEntries(int newNumEntries); // Changes the color map's size
-	void copyMap(int newNumEntries,const Color* newEntries,double newMin,double newMax); // Copies from another color map
-	
-	/* Constructors and destructors: */
+    double min,max; // The scalar value range
+    double factor,offset; // The scaling factors to map data values to indices
+
+    /* Private methods: */
+    void setNumEntries(int newNumEntries); // Changes the color map's size
+    void copyMap(int newNumEntries,const Color* newEntries,double newMin,double newMax); // Copies from another color map
+
+    /* Constructors and destructors: */
 public:
-	~ColorMap(void);
-	
-	/* Methods: */
-	bool load(string path, bool absolute = false); // Loads a color map from a file
-	ColorMap& setColors(int newNumEntries,const Color* newEntries); // Sets the color map array directly
-    bool createFile(string filename, bool absolute); //create a colormap file
+    ~ColorMap(void);
+
+    /* Methods: */
+    bool load(string path, bool absolute = false); // Loads colorkeys from a file
+    bool setKeys(ofColor& colorkeys, double& heightkeys); // Set keys
+    bool updateColormap(void);    // Update colormap based on stored colorkeys
+
+    bool createFile(string filename, bool absolute); //create a sample colormap file
     
-    //	void save(const char* fileName) const; // Saves a 256-entry color map to a file
-	double getScalarRangeMin(void) const // Returns minimum of scalar value range
+    Color operator()(int scalar) const; // Return the color for a scalar value using linear interpolation
+    ofImage getTexture(); // return color map texture
+
+    // Utilities
+    double getScalarRangeMin(void) const // Returns minimum of scalar value range
     {
-		return min;
+        return min;
     }
-	double getScalarRangeMax(void) const // Returns maximum of scalar value range
+    double getScalarRangeMax(void) const // Returns maximum of scalar value range
     {
-		return max;
+        return max;
     }
-	ColorMap& setScalarRange(double newMin,double newMax); // Changes the scalar value range
-	ColorMap& changeTransparency(float gamma); // Applies a gamma function to the transparency values
-	ColorMap& premultiplyAlpha(void); // Converts the colors into premultiplied alpha format for easier compositing
-	int getNumEntries(void) const // Returns the number of entries in the map
+    int getNumEntries(void) const // Returns the number of entries in the map
     {
-		return numEntries;
+        return numEntries;
     }
-	Color operator()(int scalar) const; // Returns the color for a scalar value using linear interpolation
-    ofImage getTexture(); // return color map
+    int getNumKeys(void) const // Returns the number of colorkeys in the map
+    {
+        return numKeys;
+    }
+    ofColor* getColorKeys(void) const // Returns the colorkeys in the map
+    {
+        return heightMapColors;
+    }
+    double* getHeightKeys(void) const // Returns the heightkeys in the map
+    {
+        return heightMapKeys;
+    }
     
 };
 

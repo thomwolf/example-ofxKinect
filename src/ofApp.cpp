@@ -19,19 +19,19 @@ void ofApp::setup(){
 	enableCalibration = false;
 	enableTestmode	  = false;
 	
-    // kinect: configure your backend
+    // kinect: configure backend
     kinect.init();
     kinect.setRegistration(true);
     kinect.open();
     int kinectWidth = kinect.getWidth();
     int kinectHeight = kinect.getHeight();
-	kinect.setDepthClipping(500, 1000);
+    kinect.setDepthClipping(500, 1000);
     
     // allocations
     kinectColorImage.allocate(kinectWidth, kinectHeight);
     kinectDepthImage.allocate(kinectWidth, kinectHeight, OF_IMAGE_GRAYSCALE);
-	kinectColoredDepth.allocate(kinectWidth, kinectHeight, OF_IMAGE_COLOR);
-	thresholdedKinect.allocate(kinectWidth, kinectHeight, OF_IMAGE_GRAYSCALE);
+    kinectColoredDepth.allocate(kinectWidth, kinectHeight, OF_IMAGE_COLOR);
+    thresholdedKinect.allocate(kinectWidth, kinectHeight, OF_IMAGE_GRAYSCALE);
 	
     // contourFinder config
 	chessboardThreshold = 60;
@@ -59,16 +59,15 @@ void ofApp::setup(){
     kinectProjectorOutput.setup(kinectWrapper, projectorWidth, projectorHeight);
     kinectProjectorOutput.load("kinectProjector.yml");
     
-    // setup the second window
-	//    secondWindow.setup("Projector", 500, 50, projectorWidth, projectorHeight, false);
-    
-    // setup the gui
-	//    shader.load( "shaderVert.c", "shaderFrag.c" );
-	//    kinectDepthImage.allocate(640, 480, 1);
-	//    fbo.allocate( 800, 600);
-	
+    // Load colormap
     colormap.load("HeightColorMap.yml");
+
+    // prepare shaders and fbo
+    shader.load( "shaderVert.c", "shaderFrag.c" );
+    fbo.allocate( 800, 600);
 	
+	
+    // setup the gui
     setupGui();
 }
 
@@ -85,8 +84,11 @@ void ofApp::update(){
 		 thresholdedKinect.update();
 		 */
 		kinectDepthImage.setFromPixels(kinect.getDepthPixels());
+                kinectColoredDepth.setFromPixels(kinectDepthImage).getPixels());
 		
-		ofPixels pixels = kinectColoredDepth.getPixels();
+/*
+                // Computing color map in CPU (FPS: 12-20)
+                ofPixels pixels = kinectColoredDepth.getPixels();
 		ofPixels depth = kinectDepthImage.getPixels();
 		
 		depth.setImageType(OF_IMAGE_GRAYSCALE);
@@ -103,7 +105,8 @@ void ofApp::update(){
 				pixels.setColor(i, j, value);
 			}
 		}
-		kinectColoredDepth.setFromPixels(pixels);
+                kinectColoredDepth.setFromPixels(pixels);*/
+
 	}
     // if calibration active
     if (enableCalibration) {
@@ -192,50 +195,23 @@ void ofApp::drawProj(ofEventArgs & args){
 		ofClear(0);
 		kinectProjectorCalibration.drawChessboard();
 	} else if (enableTestmode) {
-		ofClear(0);
-		ofSetColor(255, 190, 70);
-		kinectColoredDepth.ofBaseDraws::draw(0, 0, 800, 600);
-		/*		for (int i = 0; i < contourFinder.size(); i++) {
-		 
-		 ofPolyline blobContour = contourFinder.getPolyline(i);
-		 if(!blobContour.isClosed()){
-		 blobContour.close();
-		 }
-		 
-		 ofBeginShape();
-		 for (int j = 0; j < blobContour.size() - 1; j++) {
-		 ofPoint currVertex = kinectProjectorOutput.projectFromDepthXY(blobContour[j]);
-		 ofVertex(currVertex.x, currVertex.y);
-		 
-		 }
-		 ofEndShape();
-		 
-		 }*/
-		ofSetColor(255);
-		
-		//1. Drawing into fbo buffer
-		/*		fbo.begin();		//Start drawing into buffer
-		 //Draw something here just like it is drawn on the screen
-		 ofBackground(0, 0, 0 );
-		 fbo.end();			//End drawing into buffer
+
+                //1. Drawing into fbo buffer
+                fbo.begin();		//Start drawing grayscale depth image into buffer
+                ofClear(0);
+                ofSetColor(255, 190, 70);
+                kinectDepthImage.ofBaseDraws::draw(0, 0, 800, 600);
+                ofSetColor(255);
+                fbo.end();			//End drawing into buffer
 		 
 		 //2. Drawing to screen through the shader
 		 shader.begin();
-		 shader.setUniformTexture( "texture1", kinectDepthImage.getTexture(), 1 ); //"1" means that it is texture 1
-		 shader.setUniformTexture( "texture2", colormap.getTexture(), 1 ); //"2" means that it is texture 2
-		 
-		 //shader.setUniform1i( "N", N );
-		 shader.setUniform1fv( "specArray", spectrum, N );
-		 
+                 shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
 		 //Draw image through shader
 		 ofSetColor( 255, 255, 255 );
 		 fbo.draw( 0, 0 );
-		 
-		 //ofSetColor( 255, 255, 255, 128 );
-		 //fbo2.draw( 0, 0 );
-		 
-		 shader.end();
-		 */
+                 shader.end();
+
 	} else {
 		ofBackground(255);
 	}
