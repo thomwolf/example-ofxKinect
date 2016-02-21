@@ -74,6 +74,7 @@ void ofApp::setup(){
     colormap.load("HeightColorMap.yml");
 	
     // prepare shaders and fbo
+	contourlinefactor = 50;
     shader.load( "shaderVert.c", "shaderFrag.c" );
     fbo.allocate( projectorWidth, projectorHeight);
 	
@@ -218,6 +219,7 @@ void ofApp::drawProj(ofEventArgs & args){
 		shader.begin();
 		shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
 		shader.setUniform1f("texsize", 255 );
+		shader.setUniform1f("contourLineFactor", contourlinefactor);
 		ofSetColor( 255, 255, 255 );
 		fbo.draw( 0, 0 );
 		shader.end();
@@ -357,6 +359,9 @@ void ofApp::setupGui() {
 	
 	guiImageSettings->addSpacer(length, 2);
 	guiImageSettings->addWidgetDown(new ofxUIRangeSlider("Kinect range", 500.0, 4000.0, &nearclip, &farclip, length, dim));
+	
+	guiImageSettings->addSpacer(length, 2);
+	guiImageSettings->addWidgetDown(new ofxUISlider("Contourline factor", 0.0, 255, &contourlinefactor, length, dim));
 	
 	guiImageSettings->autoSizeToFitWidgets();
 	guiImageSettings->setPosition(640 - guiImageSettings->getRect()->getWidth(), 0);

@@ -72,6 +72,7 @@ private:
     float                       maxReprojError;
 	int mindepth;
 	int maxdepth;
+    float contourlinefactor;
     ofShader                    shader;            //Shader
     ofFbo                       fbo;			//Buffer for intermediate drawing
 
