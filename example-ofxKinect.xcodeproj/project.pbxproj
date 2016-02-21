@@ -67,6 +67,7 @@
 		B712B9FE1C6E3D0E00D3C52F /* ofxSliderGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B712B9F41C6E3D0E00D3C52F /* ofxSliderGroup.cpp */; };
 		B712B9FF1C6E3D0E00D3C52F /* ofxToggle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B712B9F61C6E3D0E00D3C52F /* ofxToggle.cpp */; };
 		B718468F1C73B86A00AAEA3D /* ColorMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B718468D1C73B86A00AAEA3D /* ColorMap.cpp */; };
+		B7F55E991C78A81200380590 /* FrameFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B724FB2C1C765F46004C21CC /* FrameFilter.cpp */; };
 		B906C0D0B435A2FBCFBB7AE1 /* KinectProjectorOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4850F8CA4F961A3CFA83D7E /* KinectProjectorOutput.cpp */; };
 		BBAB23CB13894F3D00AA2426 /* GLUT.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = BBAB23BE13894E4700AA2426 /* GLUT.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		BFEFCE32DAFE10A8EB519F6C /* ofxUISpacer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30CBAAEC78A0E9EBBB10A05A /* ofxUISpacer.cpp */; };
@@ -1396,6 +1397,7 @@
 				7BE46522B64E24FAEDE1A25D /* ofxUICanvas.cpp in Sources */,
 				DF0C851B244C4C867CEA8806 /* ofxUICircleSlider.cpp in Sources */,
 				B712B9FC1C6E3D0E00D3C52F /* ofxPanel.cpp in Sources */,
+				B7F55E991C78A81200380590 /* FrameFilter.cpp in Sources */,
 				9BE4AE0AA2B8C436BDFE9D4D /* ofxUIDragableLabelButton.cpp in Sources */,
 				F392A99D83698FC099127880 /* ofxUIDropDownList.cpp in Sources */,
 				084025DA517D8329301FE1B6 /* ofxUIEventArgs.cpp in Sources */,

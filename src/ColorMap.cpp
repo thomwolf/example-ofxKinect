@@ -45,7 +45,7 @@ bool ColorMap::load(string filename, bool absolute) {
     return updateColormap();
 }
 
-bool ColorMap::setKeys(ofColor& colorkeys, double& heightkeys) {
+bool ColorMap::setKeys(std::vector<ofColor> colorkeys, std::vector<double> heightkeys) {
     heightMapKeys = heightkeys;
     heightMapColors = colorkeys;
     return updateColormap();
@@ -60,7 +60,7 @@ bool ColorMap::updateColormap() {
 
     if (entries.isAllocated())
         entries.clear();
-    entries.allocate(numEntries, 1, OF_IMAGE_COLOR);
+    entries.allocate(numEntries, 1, 3);
 
     /* Evaluate the color function: */
     for(int i=0;i<numEntries;++i)
@@ -99,14 +99,14 @@ bool ColorMap::updateColormap() {
     return true;
 }
 
-ColorMap& ColorMap::setScalarRange(double newMin,double newMax)
+bool ColorMap::setScalarRange(double newMin,double newMax)
 {
     min=newMin;
     max=newMax;
     factor=double(numEntries-1)/(max-min);
     offset=min*factor;
 
-    return *this;
+    return true;
 }
 
 bool ColorMap::createFile(string filename, bool absolute) {
@@ -161,8 +161,8 @@ ColorMap::Color ColorMap::operator()(int scalar) const
     return color;
 }
 
-ofImage ColorMap::getTexture(void)  // return color map
+ofTexture ColorMap::getTexture(void)  // return color map
 {
-    return tex;
+    return tex.getTexture();
 }
 

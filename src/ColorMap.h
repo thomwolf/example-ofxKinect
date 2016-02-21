@@ -4,15 +4,12 @@
  which is part of the OpenGL Support Library (GLSupport).
  ***********************************************************************/
 
-#ifndef ColorMap_INCLUDED
-#define ColorMap_INCLUDED
+#pragma once
 
 #include "ofMain.h"
 #include "ofxCv.h"
 #include "ofxOpenCv.h"
-/*#include <GL/gl.h>
- #include <GL/GLColor.h>
- */
+
 using namespace ofxCv;
 using namespace cv;
 class ColorMap
@@ -51,15 +48,16 @@ public:
 
     /* Methods: */
     bool load(string path, bool absolute = false); // Loads colorkeys from a file
-    bool setKeys(ofColor& colorkeys, double& heightkeys); // Set keys
+    bool setKeys(std::vector<ofColor> colorkeys, std::vector<double> heightkeys); // Set keys
     bool updateColormap(void);    // Update colormap based on stored colorkeys
 
     bool createFile(string filename, bool absolute); //create a sample colormap file
     
     Color operator()(int scalar) const; // Return the color for a scalar value using linear interpolation
-    ofImage getTexture(); // return color map texture
+    ofTexture getTexture(); // return color map texture
 
     // Utilities
+    bool setScalarRange(double newMin,double newMax);
     double getScalarRangeMin(void) const // Returns minimum of scalar value range
     {
         return min;
@@ -76,15 +74,13 @@ public:
     {
         return numKeys;
     }
-    ofColor* getColorKeys(void) const // Returns the colorkeys in the map
+    std::vector<ofColor> getColorKeys(void) const // Returns the colorkeys in the map
     {
         return heightMapColors;
     }
-    double* getHeightKeys(void) const // Returns the heightkeys in the map
+    std::vector<double> getHeightKeys(void) const // Returns the heightkeys in the map
     {
         return heightMapKeys;
     }
     
 };
-
-#endif

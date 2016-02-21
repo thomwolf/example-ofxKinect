@@ -14,10 +14,12 @@ void ofApp::setup(){
     ofSetLogLevel("ofThread", OF_LOG_WARNING);
 	
 	// settings and defaults
-	projectorWidth = 800;
-	projectorHeight = 680;
+	projectorWidth = 640;
+	projectorHeight = 480;
 	enableCalibration = false;
-	enableTestmode	  = false;
+	enableTestmode	  = true;
+	nearclip = 500; // kinect depth clipping
+	farclip = 4000;
 	
     // kinect: configure backend
     kinect.init();
@@ -25,12 +27,21 @@ void ofApp::setup(){
     kinect.open();
     int kinectWidth = kinect.getWidth();
     int kinectHeight = kinect.getHeight();
-    kinect.setDepthClipping(500, 1000);
+    kinect.setDepthClipping(nearclip, farclip);
     
-    // allocations
+    // framefilter: configure backend
+	int numAveragingSlots=15;
+	unsigned int minNumSamples=10;
+	unsigned int maxVariance=2;
+	float hysteresis=0.1f;
+	bool spatialFilter=false;
+	framefilter.setup(kinectWidth, kinectHeight, numAveragingSlots, minNumSamples, maxVariance, hysteresis, spatialFilter);
+	framefilter.startThread();
+    
+	// allocations
     kinectColorImage.allocate(kinectWidth, kinectHeight);
-    kinectDepthImage.allocate(kinectWidth, kinectHeight, OF_IMAGE_GRAYSCALE);
-    kinectColoredDepth.allocate(kinectWidth, kinectHeight, OF_IMAGE_COLOR);
+    kinectDepthImage.allocate(kinectWidth, kinectHeight);
+    FilteredDepthImage.allocate(kinectWidth, kinectHeight);
     thresholdedKinect.allocate(kinectWidth, kinectHeight, OF_IMAGE_GRAYSCALE);
 	
     // contourFinder config
@@ -61,10 +72,10 @@ void ofApp::setup(){
     
     // Load colormap
     colormap.load("HeightColorMap.yml");
-
+	
     // prepare shaders and fbo
     shader.load( "shaderVert.c", "shaderFrag.c" );
-    fbo.allocate( 800, 600);
+    fbo.allocate( projectorWidth, projectorHeight);
 	
 	
     // setup the gui
@@ -84,31 +95,30 @@ void ofApp::update(){
 		 thresholdedKinect.update();
 		 */
 		kinectDepthImage.setFromPixels(kinect.getDepthPixels());
-                kinectColoredDepth.setFromPixels(kinectDepthImage).getPixels());
-		
-/*
-                // Computing color map in CPU (FPS: 12-20)
-                ofPixels pixels = kinectColoredDepth.getPixels();
-		ofPixels depth = kinectDepthImage.getPixels();
-		
-		depth.setImageType(OF_IMAGE_GRAYSCALE);
-		pixels.setImageType(OF_IMAGE_COLOR);
-		
-		int w = kinectColoredDepth.getWidth();
-		int h = kinectColoredDepth.getHeight();
-		mindepth = 0;
-		maxdepth = 0;
-		for (int i = 0; i < w; i++){
-			for (int j = 0; j < h; j++){
-				int scalar = depth[j * w + i];
-				ofColor value = colormap(scalar);
-				pixels.setColor(i, j, value);
+//		kinectColoredDepth.setFromPixels(kinectDepthImage.getPixels());
+		framefilter.analyze(kinectDepthImage.getPixels());
+	}
+	ofPixels filteredframe;
+	if (framefilter.analyzed.tryReceive(filteredframe)) {
+	///		// If true, `filteredframe` can be used.
+		FilteredDepthImage.setFromPixels(filteredframe);
+		int maxx = 0;
+		int minn = 1000;
+		for(unsigned int y=0;y<640*480;++y)
+		{
+			unsigned char value = FilteredDepthImage.getPixels().getData()[y];
+			unsigned char value2 = filteredframe.getData()[y];
+			if (value != 0)
+			{
+			if (FilteredDepthImage.getPixels().getData()[y]>maxx)
+				maxx =FilteredDepthImage.getPixels().getData()[y];
+			if (FilteredDepthImage.getPixels().getData()[y]<minn && FilteredDepthImage.getPixels().getData()[y]!=0)
+				minn =FilteredDepthImage.getPixels().getData()[y];
 			}
 		}
-                kinectColoredDepth.setFromPixels(pixels);*/
-
 	}
-    // if calibration active
+	
+   // if calibration active
     if (enableCalibration) {
 		
         // do a very-fast check if chessboard is found
@@ -138,7 +148,7 @@ void ofApp::draw(){
 	ofDrawBitmapString("Kinect Input",0,20);
 	kinectColorImage.draw(0,40,320,240);
 	kinectDepthImage.draw(0,20+240+40+40,320,240);
-	kinectColoredDepth.draw(320+20,40,320,240);
+//	kinectColoredDepth.draw(320+20,40,320,240);
 	
 	//ofCircle(160, 160, 5); // Kinect center
 	
@@ -175,7 +185,7 @@ void ofApp::draw(){
 		
 		ofTranslate(320+20, 20+240+20+40+20);
 		ofScale(0.5, 0.5);
-		contourFinder.draw();
+//		contourFinder.draw();
 		ofScale(2.0, 2.0);
 		ofTranslate(-(320+20), -(20+240+20+40+20));
 		
@@ -195,23 +205,23 @@ void ofApp::drawProj(ofEventArgs & args){
 		ofClear(0);
 		kinectProjectorCalibration.drawChessboard();
 	} else if (enableTestmode) {
-
-                //1. Drawing into fbo buffer
-                fbo.begin();		//Start drawing grayscale depth image into buffer
-                ofClear(0);
-                ofSetColor(255, 190, 70);
-                kinectDepthImage.ofBaseDraws::draw(0, 0, 800, 600);
-                ofSetColor(255);
-                fbo.end();			//End drawing into buffer
-		 
-		 //2. Drawing to screen through the shader
-		 shader.begin();
-                 shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
-		 //Draw image through shader
-		 ofSetColor( 255, 255, 255 );
-		 fbo.draw( 0, 0 );
-                 shader.end();
-
+		
+		//1. Drawing into fbo buffer
+		fbo.begin();		//Start drawing grayscale depth image into buffer
+		ofClear(0);
+		ofSetColor(255, 170, 170);
+		FilteredDepthImage.ofBaseDraws::draw(0, 0, projectorWidth, projectorHeight);
+		fbo.end();			//End drawing into buffer
+		
+		fbo.draw( 0, 0 );
+		//2. Drawing to screen through the shader
+		shader.begin();
+		shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
+		shader.setUniform1f("texsize", 255 );
+		ofSetColor( 255, 255, 255 );
+		fbo.draw( 0, 0 );
+		shader.end();
+		
 	} else {
 		ofBackground(255);
 	}
@@ -336,7 +346,20 @@ void ofApp::setupGui() {
 	guiImageSettings->addWidgetDown(new ofxUIRangeSlider("Thresholds", 0.0, 1.0, &lowThresh, &highThresh, length, dim));
 	
 	guiImageSettings->autoSizeToFitWidgets();
-	guiImageSettings->setPosition(1024 - guiImageSettings->getRect()->getWidth(), 768 - guiImageSettings->getRect()->getHeight());
+	guiImageSettings->setPosition(640 - guiImageSettings->getRect()->getWidth(), 768 - guiImageSettings->getRect()->getHeight());
+	//guiImageSettings->toggleMinified();
+	ofAddListener(guiImageSettings->newGUIEvent,this,&ofApp::guiEvent);
+	
+	///////////////////////////////////////////////
+	
+	guiImageSettings = new ofxUISuperCanvas("Kinect settings");
+	guiImageSettings->setColorBack(ofColor(51, 55, 56, 200));
+	
+	guiImageSettings->addSpacer(length, 2);
+	guiImageSettings->addWidgetDown(new ofxUIRangeSlider("Kinect range", 500.0, 4000.0, &nearclip, &farclip, length, dim));
+	
+	guiImageSettings->autoSizeToFitWidgets();
+	guiImageSettings->setPosition(640 - guiImageSettings->getRect()->getWidth(), 0);
 	//guiImageSettings->toggleMinified();
 	ofAddListener(guiImageSettings->newGUIEvent,this,&ofApp::guiEvent);
     
@@ -392,5 +415,8 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 		ofxUI2DPad *pad = (ofxUI2DPad *) e.widget;
 		ofVec2f trans = pad->getValue();
 		kinectProjectorCalibration.setChessboardTranslation((trans.x * projectorWidth) - projectorWidth / 2, (trans.y * projectorHeight) - projectorHeight / 2);
+	} else if (name == "Kinect range") {
+		kinect.setDepthClipping(nearclip, farclip);
+		framefilter.resetBuffers();
 	}
 }

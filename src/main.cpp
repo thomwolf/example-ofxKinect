@@ -11,15 +11,15 @@ int main( ){
 	// pass in width and height too:
 //	ofRunApp(new ofApp());
 	ofGLFWWindowSettings settings;
-	settings.width = 1024;
-	settings.height = 768;
-	settings.setPosition(ofVec2f(0,0));
+	settings.width = 640;
+	settings.height = 800;
+	settings.setPosition(ofVec2f(400,0));
 	settings.resizable = true;
 	settings.title = "Main";
 	shared_ptr<ofAppBaseWindow> mainWindow = ofCreateWindow(settings);
     
-	settings.width = 800;
-	settings.height = 600;
+	settings.width = 640;
+	settings.height = 480;
 	settings.setPosition(ofVec2f(0,0));
 	settings.title = "Proj";
 	settings.resizable = true;

@@ -11,7 +11,7 @@
 #include "ofxXmlSettings.h"
 
 #include "ColorMap.h"
-//#include "FrameFilter.h"
+#include "FrameFilter.h"
 
 using namespace cv;
 
@@ -46,18 +46,19 @@ public:
 private:
     
     // kinect & the wrapper
-    
     ofxKinect               kinect;
+    float                   nearclip, farclip;
     ofxCvColorImage         kinectColorImage;
     ofxCvGrayscaleImage		kinectGreyscaledImage;
-    ofImage                 kinectDepthImage;
-    ofImage                 kinectColoredDepth;
+    ofxCvGrayscaleImage     kinectDepthImage;
+    ofxCvGrayscaleImage     FilteredDepthImage;
+ //   ofImage                 kinectColoredDepth;
     
     RGBDCamCalibWrapper*	kinectWrapper;
     
     // calibration
     KinectProjectorCalibration	kinectProjectorCalibration;
-    bool			enableCalibration;
+    bool                        enableCalibration;
     ofxCv::ContourFinder        contourFinder;
     
     // output
@@ -71,11 +72,11 @@ private:
     float                       maxReprojError;
 	int mindepth;
 	int maxdepth;
-//    ofShader                    shader;            //Shader
-//    ofFbo                       fbo;			//Buffer for intermediate drawing
+    ofShader                    shader;            //Shader
+    ofFbo                       fbo;			//Buffer for intermediate drawing
 
     ColorMap                    colormap;
-//    FrameFilter                 framefilter;
+    FrameFilter                 framefilter;
     
     // settings
     int                         projectorWidth;
