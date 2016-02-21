@@ -12,7 +12,7 @@
  Methods of class FrameFilter:
  ****************************/
 
-FrameFilter::FrameFilter(): newFrame(true)
+FrameFilter::FrameFilter(): newFrame(true), bufferInitiated(false)
 {
 }
 
@@ -53,24 +53,28 @@ FrameFilter::~FrameFilter(){
 	// when the class is destroyed
 	// close both channels and wait for
 	// the thread to finish
-	toAnalyze.close();
-	analyzed.close();
-	waitForThread(true);
+//	toAnalyze.close();
+//	analyzed.close();
+    delete[] averagingBuffer;
+    delete[] statBuffer;
+    delete[] validBuffer;
+//	waitForThread(true);
 }
 
 void FrameFilter::resetBuffers(void){
 	/* Release all allocated buffers if needed */
+    if (bufferInitiated){
         delete[] averagingBuffer;
         delete[] statBuffer;
         delete[] validBuffer;
-    
+    }
     initiateBuffers();
 }
     
     
 void FrameFilter::initiateBuffers(void){
-    /* Initialize the input frame slot: */
-    inputFrameVersion=0;
+//    /* Initialize the input frame slot: */
+//    inputFrameVersion=0;
     
     averagingBuffer=new RawDepth[numAveragingSlots*height*width];
     RawDepth* abPtr=averagingBuffer;
@@ -95,6 +99,7 @@ void FrameFilter::initiateBuffers(void){
     for(unsigned int y=0;y<height;++y)
         for(unsigned int x=0;x<width;++x,++vbPtr)
             *vbPtr=0;
+    bufferInitiated = true;
     
 }
 void FrameFilter::analyze(ofPixels & inputframe){
@@ -102,8 +107,8 @@ void FrameFilter::analyze(ofPixels & inputframe){
     // this makes a copy but we can't avoid it anyway if
     // we want to update the grabber while analyzing
     // previous frames
-    ++inputFrameVersion;
-    toAnalyze.send(inputframe);
+//    ++inputFrameVersion;
+//    toAnalyze.send(inputframe);
 }
 
 void FrameFilter::update(){
@@ -132,25 +137,27 @@ ofPixels FrameFilter::getPixels(){
     return outputframe;
 }
 
-void FrameFilter::threadedFunction(){
+ofPixels FrameFilter::threadedFunction(ofPixels inputframe){
     // wait until there's a new frame
     // this blocks the thread, so it doesn't use
     // the CPU at all, until a frame arrives.
     // also receive doesn't allocate or make any copies
-    ofPixels inputframe;
-    inputframe.setImageType(OF_IMAGE_GRAYSCALE);
-    while(toAnalyze.receive(inputframe)){
-        // we have a new frame, process it, the analysis
-        // here is just a thresholding for the sake of
-        // simplicity
-        unsigned int lastInputFrameVersion=0;
-        lastInputFrameVersion=inputFrameVersion;
-        
-        /* Create a new output frame: */
+//    ofPixels inputframe;
+//    inputframe.setImageType(OF_IMAGE_GRAYSCALE);
+//    while(toAnalyze.receive(inputframe)){
+//        // we have a new frame, process it, the analysis
+//        // here is just a thresholding for the sake of
+//        // simplicity
+//        unsigned int lastInputFrameVersion=0;
+//        lastInputFrameVersion=inputFrameVersion;
+//        
+ //   return inputframe; ///////////////////////////////////////////////////////////////////
+    
+        // Create a new output frame: */
         ofPixels newOutputFrame;
         newOutputFrame.allocate(width, height, 1);
         
-        /* Enter the new frame into the averaging buffer and calculate the output frame's pixel values: */
+        // Enter the new frame into the averaging buffer and calculate the output frame's pixel values: */
         const RawDepth* ifPtr=static_cast<const RawDepth*>(inputframe.getData());
         RawDepth* abPtr=averagingBuffer+averagingSlotIndex*height*width;
         unsigned int* sPtr=statBuffer;
@@ -241,53 +248,53 @@ void FrameFilter::threadedFunction(){
         /* Apply a spatial filter if requested: */
         if(spatialFilter)
         {
-            //                for(int filterPass=0;filterPass<2;++filterPass)
-            //				{
-            //                    /* Low-pass filter the entire output frame in-place: */
-            //                    for(unsigned int x=0;x<width;++x)
-            //					{
-            //                        /* Get a pointer to the current column: */
-            //                        float* colPtr=static_cast<float*>(newOutputFrame.getData())+x;
-            //
-            //                        /* Filter the first pixel in the column: */
-            //                        float lastVal=*colPtr;
-            //                        *colPtr=(colPtr[0]*2.0f+colPtr[width])/3.0f;
-            //                        colPtr+=width;
-            //
-            //                        /* Filter the interior pixels in the column: */
-            //                        for(unsigned int y=1;y<height-1;++y,colPtr+=width)
-            //						{
-            //                            /* Filter the pixel: */
-            //                            float nextLastVal=*colPtr;
-            //                            *colPtr=(lastVal+colPtr[0]*2.0f+colPtr[width])*0.25f;
-            //                            lastVal=nextLastVal;
-            //						}
-            //
-            //                        /* Filter the last pixel in the column: */
-            //                        *colPtr=(lastVal+colPtr[0]*2.0f)/3.0f;
-            //					}
-            //                    float* rowPtr=static_cast<float*>(newOutputFrame.getData());
-            //                    for(unsigned int y=0;y<height;++y)
-            //					{
-            //                        /* Filter the first pixel in the row: */
-            //                        float lastVal=*rowPtr;
-            //                        *rowPtr=(rowPtr[0]*2.0f+rowPtr[1])/3.0f;
-            //                        ++rowPtr;
-            //
-            //                        /* Filter the interior pixels in the row: */
-            //                        for(unsigned int x=1;x<width-1;++x,++rowPtr)
-            //						{
-            //                            /* Filter the pixel: */
-            //                            float nextLastVal=*rowPtr;
-            //                            *rowPtr=(lastVal+rowPtr[0]*2.0f+rowPtr[1])*0.25f;
-            //                            lastVal=nextLastVal;
-            //						}
-            //
-            //                        /* Filter the last pixel in the row: */
-            //                        *rowPtr=(lastVal+rowPtr[0]*2.0f)/3.0f;
-            //                        ++rowPtr;
-            //					}
-            //				}
+                for(int filterPass=0;filterPass<2;++filterPass)
+				{
+                    /* Low-pass filter the entire output frame in-place: */
+                    for(unsigned int x=0;x<width;++x)
+					{
+                        /* Get a pointer to the current column: */
+                        RawDepth* colPtr=static_cast<RawDepth*>(newOutputFrame.getData())+x;
+
+                        /* Filter the first pixel in the column: */
+                        float lastVal=*colPtr;
+                        *colPtr=(colPtr[0]*2.0f+colPtr[width])/3.0f;
+                        colPtr+=width;
+
+                        /* Filter the interior pixels in the column: */
+                        for(unsigned int y=1;y<height-1;++y,colPtr+=width)
+						{
+                            /* Filter the pixel: */
+                            float nextLastVal=*colPtr;
+                            *colPtr=(lastVal+colPtr[0]*2.0f+colPtr[width])*0.25f;
+                            lastVal=nextLastVal;
+						}
+
+                        /* Filter the last pixel in the column: */
+                        *colPtr=(lastVal+colPtr[0]*2.0f)/3.0f;
+					}
+                    RawDepth* rowPtr=static_cast<RawDepth*>(newOutputFrame.getData());
+                    for(unsigned int y=0;y<height;++y)
+					{
+                        /* Filter the first pixel in the row: */
+                        float lastVal=*rowPtr;
+                        *rowPtr=(rowPtr[0]*2.0f+rowPtr[1])/3.0f;
+                        ++rowPtr;
+
+                        /* Filter the interior pixels in the row: */
+                        for(unsigned int x=1;x<width-1;++x,++rowPtr)
+						{
+                            /* Filter the pixel: */
+                            float nextLastVal=*rowPtr;
+                            *rowPtr=(lastVal+rowPtr[0]*2.0f+rowPtr[1])*0.25f;
+                            lastVal=nextLastVal;
+						}
+
+                        /* Filter the last pixel in the row: */
+                        *rowPtr=(lastVal+rowPtr[0]*2.0f)/3.0f;
+                        ++rowPtr;
+					}
+				}
         }
         
         /* Pass the new output frame to the registered receiver: */
@@ -295,25 +302,26 @@ void FrameFilter::threadedFunction(){
         //                (*outputFrameFunction)(newOutputFrame);
         
         /* Retain the new output frame: */
-        float maxx = 0;
-        float minn = 1000;
-        for(unsigned int y=0;y<height*height;++y)
-        {
-            if (newOutputFrame.getData()[y]>maxx)
-                maxx =newOutputFrame.getData()[y];
-            if (newOutputFrame.getData()[y]<minn && newOutputFrame.getData()[y]!=0)
-                minn =newOutputFrame.getData()[y];
-        }
+//        float maxx = 0;
+//        float minn = 1000;
+//        for(unsigned int y=0;y<height*height;++y)
+//        {
+//            if (newOutputFrame.getData()[y]>maxx)
+//                maxx =newOutputFrame.getData()[y];
+//            if (newOutputFrame.getData()[y]<minn && newOutputFrame.getData()[y]!=0)
+//                minn =newOutputFrame.getData()[y];
+//        }
         outputframe=newOutputFrame;
         // once processed send the result back to the
         // main thread. in c++11 we can move it to
         // avoid a copy
-#if __cplusplus>=201103
-        analyzed.send(std::move(newOutputFrame));
-#else
-        analyzed.send(newOutputFrame);
-#endif
-    }
+    return newOutputFrame;
+//#if __cplusplus>=201103
+//        analyzed.send(std::move(newOutputFrame));
+//#else
+//        analyzed.send(newOutputFrame);
+//#endif
+//    }
 }
 
 void FrameFilter::setValidDepthInterval(unsigned int newMinDepth,unsigned int newMaxDepth)

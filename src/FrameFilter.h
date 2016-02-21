@@ -8,13 +8,13 @@
 #pragma once
 #include "ofMain.h"
 
-class FrameFilter: public ofThread {
+class FrameFilter /*: public ofThread */{
 public:
 	typedef unsigned char RawDepth; // Data type for raw depth values
 	typedef float FilteredDepth; // Data type for filtered depth values
 
-    ofThreadChannel<ofPixels> toAnalyze;
-    ofThreadChannel<ofPixels> analyzed;
+//    ofThreadChannel<ofPixels> toAnalyze;
+//    ofThreadChannel<ofPixels> analyzed;
 
     FrameFilter();
     ~FrameFilter();
@@ -35,13 +35,14 @@ public:
 	void setRetainValids(bool newRetainValids); // Sets whether the filter retains previous stable values for instable pixels
 	void setInstableValue(float newInstableValue); // Sets the depth value to assign to instable pixels
 	void setSpatialFilter(bool newSpatialFilter); // Sets the spatial filtering flag
+    ofPixels threadedFunction(ofPixels inputframe);
     
 private:
-    void threadedFunction();
     ofPixels inputframe;
     ofPixels outputframe;
     ofTexture texture;
     bool newFrame;
+    bool bufferInitiated;
     
     
     unsigned int width, height; // Width and height of processed frames

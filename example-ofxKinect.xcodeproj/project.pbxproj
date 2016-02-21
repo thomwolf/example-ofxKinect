@@ -67,6 +67,7 @@
 		B712B9FE1C6E3D0E00D3C52F /* ofxSliderGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B712B9F41C6E3D0E00D3C52F /* ofxSliderGroup.cpp */; };
 		B712B9FF1C6E3D0E00D3C52F /* ofxToggle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B712B9F61C6E3D0E00D3C52F /* ofxToggle.cpp */; };
 		B718468F1C73B86A00AAEA3D /* ColorMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B718468D1C73B86A00AAEA3D /* ColorMap.cpp */; };
+		B742D8461C79B06D0084B39F /* KinectGrabber.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B742D8441C79B06D0084B39F /* KinectGrabber.cpp */; };
 		B7F55E991C78A81200380590 /* FrameFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B724FB2C1C765F46004C21CC /* FrameFilter.cpp */; };
 		B906C0D0B435A2FBCFBB7AE1 /* KinectProjectorOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4850F8CA4F961A3CFA83D7E /* KinectProjectorOutput.cpp */; };
 		BBAB23CB13894F3D00AA2426 /* GLUT.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = BBAB23BE13894E4700AA2426 /* GLUT.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -348,6 +349,8 @@
 		B718468E1C73B86A00AAEA3D /* ColorMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorMap.h; sourceTree = "<group>"; };
 		B724FB2C1C765F46004C21CC /* FrameFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FrameFilter.cpp; sourceTree = "<group>"; };
 		B724FB2D1C765F46004C21CC /* FrameFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FrameFilter.h; sourceTree = "<group>"; };
+		B742D8441C79B06D0084B39F /* KinectGrabber.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KinectGrabber.cpp; sourceTree = "<group>"; };
+		B742D8451C79B06D0084B39F /* KinectGrabber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KinectGrabber.h; sourceTree = "<group>"; };
 		B7BF51E8E757FF8A162D3662 /* lsh_index.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = lsh_index.h; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/flann/lsh_index.h; sourceTree = SOURCE_ROOT; };
 		B7E0B5701C75E6E3002DE865 /* shaderFrag.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = shaderFrag.c; path = bin/data/shaderFrag.c; sourceTree = SOURCE_ROOT; };
 		B7E0B5711C75E6E3002DE865 /* shaderVert.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = shaderVert.c; path = bin/data/shaderVert.c; sourceTree = SOURCE_ROOT; };
@@ -1174,6 +1177,8 @@
 		E4B69E1C0A3A1BDC003C02F2 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				B742D8441C79B06D0084B39F /* KinectGrabber.cpp */,
+				B742D8451C79B06D0084B39F /* KinectGrabber.h */,
 				B724FB2C1C765F46004C21CC /* FrameFilter.cpp */,
 				B724FB2D1C765F46004C21CC /* FrameFilter.h */,
 				B7E0B5701C75E6E3002DE865 /* shaderFrag.c */,
@@ -1431,6 +1436,7 @@
 				1DAAC3FB4B98B08AE63F4687 /* ofxUISuperCanvas.cpp in Sources */,
 				5AE95ADB5549701423B6DA48 /* ofxUITabBar.cpp in Sources */,
 				C961BE22AB9A8CCF037FC18F /* ofxUITextArea.cpp in Sources */,
+				B742D8461C79B06D0084B39F /* KinectGrabber.cpp in Sources */,
 				B712B9FD1C6E3D0E00D3C52F /* ofxSlider.cpp in Sources */,
 				F8D05F7C7F785CE323983B47 /* ofxUITextInput.cpp in Sources */,
 				04C82720B149CE576B8CBB06 /* ofxUIToggle.cpp in Sources */,

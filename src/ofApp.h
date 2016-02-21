@@ -5,13 +5,10 @@
 #include "ofxCv.h"
 
 #include "ofxUI.h"
-#include "ofxKinect.h"
-#include "RGBDCamCalibWrapperOfxKinect.h"
-#include "ofxKinectProjectorCalibration.h"
-#include "ofxXmlSettings.h"
 
 #include "ColorMap.h"
 #include "FrameFilter.h"
+#include "KinectGrabber.h"
 
 using namespace cv;
 
@@ -39,49 +36,35 @@ public:
     void setupGui();
     ofxUISuperCanvas *          gui;
     ofxUISuperCanvas *		guiImageSettings;
+    ofxUISuperCanvas *		guiMappingSettings;
+    
     void guiEvent(ofxUIEventArgs &e);
     void guiUpdateLabels();
     //ofxPanel gui;
-    
+
 private:
     
-    // kinect & the wrapper
-    ofxKinect               kinect;
+    bool                        enableTestmode, enableCalibration;
+    
+    // calibration settings
+    int                         projectorWidth;
+    int                         projectorHeight;
+    
+    // UI conf values
     float                   nearclip, farclip;
-    ofxCvColorImage         kinectColorImage;
-    ofxCvGrayscaleImage		kinectGreyscaledImage;
-    ofxCvGrayscaleImage     kinectDepthImage;
-    ofxCvGrayscaleImage     FilteredDepthImage;
- //   ofImage                 kinectColoredDepth;
-    
-    RGBDCamCalibWrapper*	kinectWrapper;
-    
-    // calibration
-    KinectProjectorCalibration	kinectProjectorCalibration;
-    bool                        enableCalibration;
-    ofxCv::ContourFinder        contourFinder;
-    
-    // output
-    KinectProjectorOutput	kinectProjectorOutput;
-    bool			enableTestmode;
-    float                       chessboardThreshold;
-    ofImage			thresholdedKinect;
-    float                       lowThresh;
-    float                       highThresh;
-    int				blur;
-    float                       maxReprojError;
+    float   chessboardSize, chessboardColor,chessboardThreshold, maxReprojError, StabilityTimeInMs;
 	int mindepth;
 	int maxdepth;
     float contourlinefactor;
+    bool horizontalMirror, verticalMirror;
+
     ofShader                    shader;            //Shader
     ofFbo                       fbo;			//Buffer for intermediate drawing
-
     ColorMap                    colormap;
-    FrameFilter                 framefilter;
-    
-    // settings
-    int                         projectorWidth;
-    int                         projectorHeight;
+    KinectGrabber               kinectgrabber;
+
+    ofxCvGrayscaleImage     FilteredDepthImage;
+    ofxCvColorImage         kinectColorImage;
     
     ofParameterGroup labels;
     
