@@ -16,16 +16,17 @@ void ofApp::setup(){
 	// settings and defaults
 	enableCalibration = false;
 	enableTestmode	  = true;
+	enableGame = false;
 	
 	// kinect depth clipping
 	nearclip = 500;
 	farclip = 4000;
     // framefilter: configure backend
-	int numAveragingSlots=15;
+	int numAveragingSlots=20;
 	unsigned int minNumSamples=10;
 	unsigned int maxVariance=2;
 	float hysteresis=0.1f;
-	bool spatialFilter=false;
+	bool spatialFilter=true;
     
     // calibration config
 	projectorWidth = 640;
@@ -35,12 +36,13 @@ void ofApp::setup(){
 	StabilityTimeInMs = 500;
 	maxReprojError = 2.0f;
 	chessboardThreshold = 60;
+	gradFieldresolution = 10;
 	horizontalMirror = false;
 	verticalMirror = false;
 	
     // kinectgrabber: setup
 	kinectgrabber.setup();
-	kinectgrabber.setupFramefilter(numAveragingSlots, minNumSamples, maxVariance, hysteresis, spatialFilter);
+	kinectgrabber.setupFramefilter(numAveragingSlots, minNumSamples, maxVariance, hysteresis, spatialFilter, gradFieldresolution);
 	kinectgrabber.setupClip(nearclip, farclip);
 	kinectgrabber.setupCalibration(projectorWidth, projectorHeight, chessboardSize, chessboardColor, StabilityTimeInMs, maxReprojError);
 	kinectgrabber.startThread();
@@ -53,8 +55,7 @@ void ofApp::setup(){
     shader.load( "shaderVert.c", "shaderFrag.c" );
     fbo.allocate( projectorWidth, projectorHeight);
 	
-	
-    // setup the gui
+	// setup the gui
     setupGui();
 }
 
@@ -95,6 +96,15 @@ void ofApp::update(){
 			}
 		}
 	}
+	
+	if (enableGame) {
+		for (auto & v : vehicles){
+			v.applyBehaviours(vehicles);
+			v.borders();
+			v.update();
+		}
+	}
+
     // update the gui labels with the result of our calibraition
     guiUpdateLabels();
 }
@@ -183,6 +193,27 @@ void ofApp::drawProj(ofEventArgs & args){
 		fbo.draw( 0, 0 );
 		shader.end();
 		
+	} else if (enableGame) {
+		//1. Drawing into fbo buffer
+		fbo.begin();		//Start drawing grayscale depth image into buffer
+		ofClear(0);
+		ofSetColor(255, 170, 170);
+		FilteredDepthImage.ofBaseDraws::draw(0, 0, projectorWidth, projectorHeight);
+		fbo.end();			//End drawing into buffer
+		
+		fbo.draw( 0, 0 );
+		//2. Drawing to screen through the shader
+		shader.begin();
+		shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
+		shader.setUniform1f("texsize", 255 );
+		shader.setUniform1f("contourLineFactor", contourlinefactor);
+		ofSetColor( 255, 255, 255 );
+		fbo.draw( 0, 0 );
+		shader.end();
+		
+		for (auto & v : vehicles){
+			v.draw();
+		}
 	} else {
 		ofBackground(255);
 	}
@@ -242,6 +273,18 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 }
 
 //--------------------------------------------------------------
+void ofApp::createVehicles() {
+	// setup the vehicles
+	vehicles.resize(100);
+	int screenWidth =projWindow->getWidth();
+	int screenHeight =projWindow->getHeight();
+	ofPoint location(screenWidth, screenHeight);
+	for (auto & v : vehicles){
+		v.setup(ofRandom(location.x), ofRandom(location.y), screenWidth, screenHeight);
+	}
+}
+
+//--------------------------------------------------------------
 void ofApp::setupGui() {
     
     float dim = 16;
@@ -267,6 +310,7 @@ void ofApp::setupGui() {
 	gui->addWidgetDown(new ofxUILabel("Mode", OFX_UI_FONT_MEDIUM));
 	gui->addSpacer(length, 2);
 	gui->addWidgetDown(new ofxUIToggle("Activate calibration mode", &enableCalibration, dim, dim));
+	gui->addWidgetDown(new ofxUIToggle("Activate game mode", &enableGame, dim, dim));
 	
 	gui->addWidgetDown(new ofxUILabel(" ", OFX_UI_FONT_MEDIUM));
 	gui->addSpacer(length, 2);
@@ -303,9 +347,9 @@ void ofApp::setupGui() {
 	guiImageSettings->addWidgetDown(new ofxUIToggle("Activate test mode", &enableTestmode, dim, dim));
 	guiImageSettings->addWidgetDown(new ofxUIToggle("Horizontal mirror", &horizontalMirror, dim, dim));
 	guiImageSettings->addWidgetDown(new ofxUIToggle("Vertical Mirror", &verticalMirror, dim, dim));
-//	guiImageSettings->addSpacer(length, 2);
-//	guiImageSettings->addWidgetDown(new ofxUILabel("lbl", "Tracking options", OFX_UI_FONT_MEDIUM));
-//	guiImageSettings->addWidgetDown(new ofxUIRangeSlider("Thresholds", 0.0, 1.0, &kinectgrabber.lowThresh, &kinectgrabber.highThresh, length, dim));
+	//	guiImageSettings->addSpacer(length, 2);
+	//	guiImageSettings->addWidgetDown(new ofxUILabel("lbl", "Tracking options", OFX_UI_FONT_MEDIUM));
+	//	guiImageSettings->addWidgetDown(new ofxUIRangeSlider("Thresholds", 0.0, 1.0, &kinectgrabber.lowThresh, &kinectgrabber.highThresh, length, dim));
 	
 	guiImageSettings->autoSizeToFitWidgets();
 	guiImageSettings->setPosition(0, 0);//768 - guiImageSettings->getRect()->getHeight());
@@ -335,11 +379,11 @@ void ofApp::setupGui() {
 void ofApp::guiUpdateLabels() {
     ofxUILabel* l;
     l = (ofxUILabel*) guiImageSettings->getWidget("errorLabel");
-	    l->setLabel("Avg Reprojection error: " + ofToString(kinectgrabber.kinectProjectorCalibration.getReprojectionError(), 2));
+	l->setLabel("Avg Reprojection error: " + ofToString(kinectgrabber.kinectProjectorCalibration.getReprojectionError(), 2));
     //l->setLabel("MaxDepth: " + ofToString(maxdepth));
     
     l = (ofxUILabel*) guiImageSettings->getWidget("capturesLabel");
-	    l->setLabel("Number of captures: " + ofToString(kinectgrabber.kinectProjectorCalibration.getDatabaseSize()));
+	l->setLabel("Number of captures: " + ofToString(kinectgrabber.kinectProjectorCalibration.getDatabaseSize()));
     //l->setLabel("MinDepth: " + ofToString(mindepth));
 }
 
@@ -353,29 +397,39 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 	} else if (name == "Clear dataset (remove all)") {
 		ofxUIButton* b = (ofxUIButton*)e.widget;
 		if(b->getValue()) kinectgrabber.kinectProjectorCalibration.clearAll();
+	}else if (name == "Activate game mode") {
+		ofxUIButton* b = (ofxUIButton*)e.widget;
+		if(b->getValue()) {
+			createVehicles();
+			enableTestmode = false;
+			enableCalibration = false;
+			enableGame = true;
+		}
 	} else if (name == "Activate test mode") {
 		ofxUIButton* b = (ofxUIButton*)e.widget;
 		if(b->getValue()) {
 			enableTestmode = true;
 			enableCalibration = false;
+			enableGame = false;
 			kinectgrabber.lock();
 			kinectgrabber.setTestmode();
 			kinectgrabber.unlock();
 			guiImageSettings->setVisible(false);
 			guiMappingSettings->setVisible(true);
-//			gui->setVisible(true);
+			//			gui->setVisible(true);
 		}
 	} else if (name == "Activate calibration mode") {
 		ofxUIButton* b = (ofxUIButton*)e.widget;
 		if(b->getValue()){
 			enableCalibration = true;
 			enableTestmode = false;
+			enableGame = false;
 			kinectgrabber.lock();
 			kinectgrabber.setCalibrationmode();
 			kinectgrabber.unlock();
 			guiImageSettings->setVisible(true);
 			guiMappingSettings->setVisible(false);
-//			gui->toggleVisible();
+			//			gui->toggleVisible();
 		}
 	} else if (name == "Kinect tilt angle") {
 		//		ofxUISlider *slider = (ofxUISlider *) e.widget;

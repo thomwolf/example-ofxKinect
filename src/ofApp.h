@@ -9,6 +9,7 @@
 #include "ColorMap.h"
 #include "FrameFilter.h"
 #include "KinectGrabber.h"
+#include "vehicle.h"
 
 using namespace cv;
 
@@ -38,17 +39,20 @@ public:
     ofxUISuperCanvas *		guiImageSettings;
     ofxUISuperCanvas *		guiMappingSettings;
     
+    void createVehicles();
     void guiEvent(ofxUIEventArgs &e);
     void guiUpdateLabels();
     //ofxPanel gui;
-
+    shared_ptr<ofAppBaseWindow> projWindow;
+    
 private:
     
-    bool                        enableTestmode, enableCalibration;
+    bool                        enableTestmode, enableCalibration, enableGame;
     
     // calibration settings
     int                         projectorWidth;
     int                         projectorHeight;
+    int                         gradFieldresolution;
     
     // UI conf values
     float                   nearclip, farclip;
@@ -66,6 +70,8 @@ private:
     ofxCvGrayscaleImage     FilteredDepthImage;
     ofxCvColorImage         kinectColorImage;
     
+    vector<vehicle> vehicles;
+
     ofParameterGroup labels;
     
     // second window

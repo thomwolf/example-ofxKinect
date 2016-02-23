@@ -23,15 +23,16 @@ int main( ){
 	settings.setPosition(ofVec2f(0,0));
 	settings.title = "Proj";
 	settings.resizable = true;
-        settings.shareContextWith = mainWindow;
+    settings.shareContextWith = mainWindow;
 	// uncomment next line to share main's OpenGL resources with gui
 	//settings.shareContextWith = mainWindow;
-        shared_ptr<ofAppBaseWindow> projWindow = ofCreateWindow(settings);
-        projWindow->setVerticalSync(false);
+    shared_ptr<ofAppBaseWindow> projWindow = ofCreateWindow(settings);
+    projWindow->setVerticalSync(false);
     
 	shared_ptr<ofApp> mainApp(new ofApp);
 //	mainApp->setupGui();
-        ofAddListener(projWindow->events().draw,mainApp.get(),&ofApp::drawProj);
+    ofAddListener(projWindow->events().draw,mainApp.get(),&ofApp::drawProj);
+    mainApp->projWindow = projWindow;
     
 	ofRunApp(mainWindow, mainApp);
 	ofRunMainLoop();

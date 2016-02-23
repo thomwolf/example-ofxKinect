@@ -16,11 +16,12 @@ FrameFilter::FrameFilter(): newFrame(true), bufferInitiated(false)
 {
 }
 
-bool FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter)
+bool FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int sgradFieldresolution)
 {
 	/* Settings variables : */
 	width = swidth;
     height = sheight;
+    gradFieldresolution = sgradFieldresolution;
 	
 	/* Initialize the valid depth range: */
 	setValidDepthInterval(1,254);
@@ -42,6 +43,14 @@ bool FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int
 	/* Enable spatial filtering: */
     //	spatialFilter=true;
     spatialFilter=newSpatialFilter;
+    
+	/* Initialize the gradient field vector*/
+    gradFieldresolution = sgradFieldresolution;
+    std::cout<< "Gradient Field resolution" << gradFieldresolution <<std::endl;
+    gradFieldcols = width / sgradFieldresolution;
+    std::cout<< "Width: " << width << " Cols: " << gradFieldcols <<std::endl;
+    gradFieldrows = height / sgradFieldresolution;
+    std::cout<< "Height: " << height << " Rows: " << gradFieldrows <<std::endl;
     
     //setting buffers
 	initiateBuffers();
@@ -93,7 +102,6 @@ void FrameFilter::initiateBuffers(void){
                 *sbPtr=0;
     
     /* Initialize the valid buffer: */
-    
     validBuffer=new RawDepth[height*width];
     RawDepth* vbPtr=validBuffer;
     for(unsigned int y=0;y<height;++y)
@@ -101,6 +109,13 @@ void FrameFilter::initiateBuffers(void){
             *vbPtr=0;
     bufferInitiated = true;
     
+    /* Initialize the gradient field vector: */
+    gradField = vector<float> (gradFieldcols * gradFieldrows);
+    float * gfPtr = gradField.data();
+    for(unsigned int y=0;y<height;++y)
+        for(unsigned int x=0;x<width;++x,++gfPtr)
+            *gfPtr=0;
+   
 }
 void FrameFilter::analyze(ofPixels & inputframe){
     // send the frame to the thread for analyzing
@@ -133,11 +148,11 @@ bool FrameFilter::isFrameNew(){
     return newFrame;
 }
 
-ofPixels FrameFilter::getPixels(){
-    return outputframe;
+std::vector<float> FrameFilter::getGradField(){
+    return gradField;
 }
 
-ofPixels FrameFilter::threadedFunction(ofPixels inputframe){
+ofPixels FrameFilter::filter(ofPixels inputframe){
     // wait until there's a new frame
     // this blocks the thread, so it doesn't use
     // the CPU at all, until a frame arrives.

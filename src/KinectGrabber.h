@@ -17,7 +17,7 @@ public:
 	~KinectGrabber();
     void setup();
     void setupClip(float nearclip, float farclip);
-    void setupFramefilter(int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter);
+    void setupFramefilter(int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution);
     void setupCalibration(int projectorWidth, int projectorHeight, float schessboardSize, float schessboardColor, float sStabilityTimeInMs, float smaxReprojError);
     void setCalibrationmode();
     void setTestmode();

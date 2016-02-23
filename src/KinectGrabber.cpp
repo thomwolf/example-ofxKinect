@@ -49,8 +49,8 @@ void KinectGrabber::setup(){
     kinectColorImage.setUseTexture(false);
 }
 
-void KinectGrabber::setupFramefilter(int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter) {
-    framefilter.setup(kinectWidth, kinectHeight, sNumAveragingSlots, newMinNumSamples, newMaxVariance, newHysteresis, newSpatialFilter);
+void KinectGrabber::setupFramefilter(int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution) {
+    framefilter.setup(kinectWidth, kinectHeight, sNumAveragingSlots, newMinNumSamples, newMaxVariance, newHysteresis, newSpatialFilter, gradFieldresolution);
     // framefilter.startThread();
 }
 
@@ -138,7 +138,7 @@ void KinectGrabber::threadedFunction(){
                 // if the test mode is activated, the settings are loaded automatically (see gui function)
                 if (enableTestmode) {
                     ofPixels filteredframe;
-                    filteredframe = framefilter.threadedFunction(kinectDepthImage.getPixels());
+                    filteredframe = framefilter.filter(kinectDepthImage.getPixels());
                     filteredframe.setImageType(OF_IMAGE_GRAYSCALE);
                     // If new filtered image => send back to main thread
 #if __cplusplus>=201103
@@ -157,8 +157,11 @@ void KinectGrabber::threadedFunction(){
         float snearclip = nearclip;
         float sfarclip = farclip;
         if(nearclipchannel.tryReceive(snearclip) || farclipchannel.tryReceive(sfarclip)) {
+            while(nearclipchannel.tryReceive(snearclip) || farclipchannel.tryReceive(sfarclip)) {
+            }
             kinect.setDepthClipping(snearclip, sfarclip);
             framefilter.resetBuffers();
+        
         }
     }
     kinect.close();

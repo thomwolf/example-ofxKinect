@@ -7,6 +7,7 @@
 
 #pragma once
 #include "ofMain.h"
+#include <vector>
 
 class FrameFilter /*: public ofThread */{
 public:
@@ -19,15 +20,15 @@ public:
     FrameFilter();
     ~FrameFilter();
     
-    bool setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter);
+    bool setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution);
     void initiateBuffers(void); // Reinitialise buffers
     void resetBuffers(void);
    void analyze(ofPixels & frame);
     void update();
     bool isFrameNew();
-    ofPixels getPixels();
-    void draw(float x, float y);
-    void draw(float x, float y, float w, float h);
+    std::vector<float> getGradField();
+//    void draw(float x, float y);
+//    void draw(float x, float y, float w, float h);
 	void setValidDepthInterval(unsigned int newMinDepth,unsigned int newMaxDepth); // Sets the interval of depth values considered by the depth image filter
 	void setValidElevationInterval(double newMinElevation,double newMaxElevation); // Sets the interval of elevations relative to the given base plane considered by the depth image filter
 	void setStableParameters(unsigned int newMinNumSamples,unsigned int newMaxVariance); // Sets the statistical properties to consider a pixel stable
@@ -35,7 +36,7 @@ public:
 	void setRetainValids(bool newRetainValids); // Sets whether the filter retains previous stable values for instable pixels
 	void setInstableValue(float newInstableValue); // Sets the depth value to assign to instable pixels
 	void setSpatialFilter(bool newSpatialFilter); // Sets the spatial filtering flag
-    ofPixels threadedFunction(ofPixels inputframe);
+    ofPixels filter(ofPixels inputframe);
     
 private:
     ofPixels inputframe;
@@ -44,6 +45,9 @@ private:
     bool newFrame;
     bool bufferInitiated;
     
+    std::vector<float> gradField;
+    int gradFieldcols, gradFieldrows;
+    int gradFieldresolution;           //Resolution of grid relative to window width and height in pixels
     
     unsigned int width, height; // Width and height of processed frames
     unsigned int inputFrameVersion; // Version number of input frame
