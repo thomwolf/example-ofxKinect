@@ -20,13 +20,14 @@ public:
     FrameFilter();
     ~FrameFilter();
     
-    bool setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution);
+    bool setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution,float snearclip, float sfarclip);
     void initiateBuffers(void); // Reinitialise buffers
     void resetBuffers(void);
-   void analyze(ofPixels & frame);
+   void setDepthRange(float nearclip, float farclip);
     void update();
     bool isFrameNew();
-    std::vector<float> getGradField();
+    ofVec2f getGradFieldXY(int x, int y); // gradient field at pos x, y
+    ofVec2f* getGradField(); // gradient field
 //    void draw(float x, float y);
 //    void draw(float x, float y, float w, float h);
 	void setValidDepthInterval(unsigned int newMinDepth,unsigned int newMaxDepth); // Sets the interval of depth values considered by the depth image filter
@@ -36,6 +37,9 @@ public:
 	void setRetainValids(bool newRetainValids); // Sets whether the filter retains previous stable values for instable pixels
 	void setInstableValue(float newInstableValue); // Sets the depth value to assign to instable pixels
 	void setSpatialFilter(bool newSpatialFilter); // Sets the spatial filtering flag
+    void displayFlowField();
+    void drawArrow(ofVec2f);
+    void updateGradientField();
     ofPixels filter(ofPixels inputframe);
     
 private:
@@ -45,9 +49,10 @@ private:
     bool newFrame;
     bool bufferInitiated;
     
-    std::vector<float> gradField;
+    ofVec2f* gradField;
     int gradFieldcols, gradFieldrows;
     int gradFieldresolution;           //Resolution of grid relative to window width and height in pixels
+    float maxgradfield, depthrange;
     
     unsigned int width, height; // Width and height of processed frames
     unsigned int inputFrameVersion; // Version number of input frame
@@ -65,6 +70,6 @@ private:
 	float instableValue; // Value to assign to instable pixels if retainValids is false
 	bool spatialFilter; // Flag whether to apply a spatial filter to time-averaged depth values
 	RawDepth* validBuffer; // Buffer holding the most recent stable depth value for each pixel
-	void* filterThreadMethod(void); // Method for the background filtering thread
+//	void* filterThreadMethod(void); // Method for the background filtering thread
 	
 };

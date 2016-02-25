@@ -17,7 +17,7 @@ public:
 	~KinectGrabber();
     void setup();
     void setupClip(float nearclip, float farclip);
-    void setupFramefilter(int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution);
+    void setupFramefilter(int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution,float snearclip, float sfarclip);
     void setupCalibration(int projectorWidth, int projectorHeight, float schessboardSize, float schessboardColor, float sStabilityTimeInMs, float smaxReprojError);
     void setCalibrationmode();
     void setTestmode();
@@ -29,6 +29,7 @@ public:
     
 	ofThreadChannel<ofPixels> filtered;
 	ofThreadChannel<ofPixels> colored;
+	ofThreadChannel<ofVec2f*> gradient;
 	ofThreadChannel<float> nearclipchannel;
 	ofThreadChannel<float> farclipchannel;
 
@@ -36,6 +37,8 @@ public:
 //    float                       lowThresh;
 //    float                       highThresh;
     float                       chessboardThreshold;
+    // Framefilter
+    FrameFilter                 framefilter;
 
 private:
 	void threadedFunction();
@@ -58,7 +61,4 @@ private:
     RGBDCamCalibWrapper*	kinectWrapper;
     // output
     KinectProjectorOutput	kinectProjectorOutput;
-    
-    // Framefilter thread
-    FrameFilter                 framefilter;
 };

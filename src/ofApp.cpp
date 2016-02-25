@@ -36,14 +36,14 @@ void ofApp::setup(){
 	StabilityTimeInMs = 500;
 	maxReprojError = 2.0f;
 	chessboardThreshold = 60;
-	gradFieldresolution = 10;
+	gradFieldresolution = 20;
 	horizontalMirror = false;
 	verticalMirror = false;
 	
     // kinectgrabber: setup
 	kinectgrabber.setup();
-	kinectgrabber.setupFramefilter(numAveragingSlots, minNumSamples, maxVariance, hysteresis, spatialFilter, gradFieldresolution);
-	kinectgrabber.setupClip(nearclip, farclip);
+	//	kinectgrabber.setupClip(nearclip, farclip);
+	kinectgrabber.setupFramefilter(numAveragingSlots, minNumSamples, maxVariance, hysteresis, spatialFilter, gradFieldresolution,nearclip, farclip);
 	kinectgrabber.setupCalibration(projectorWidth, projectorHeight, chessboardSize, chessboardColor, StabilityTimeInMs, maxReprojError);
 	kinectgrabber.startThread();
 	
@@ -98,13 +98,15 @@ void ofApp::update(){
 	}
 	
 	if (enableGame) {
-		for (auto & v : vehicles){
-			v.applyBehaviours(vehicles);
-			v.borders();
-			v.update();
+		if (kinectgrabber.gradient.tryReceive(gradientField)) {
+			for (auto & v : vehicles){
+				v.applyBehaviours(vehicles, gradientField);
+				//			v.borders();
+				v.update();
+			}
 		}
 	}
-
+	
     // update the gui labels with the result of our calibraition
     guiUpdateLabels();
 }
@@ -192,6 +194,7 @@ void ofApp::drawProj(ofEventArgs & args){
 		ofSetColor( 255, 255, 255 );
 		fbo.draw( 0, 0 );
 		shader.end();
+		kinectgrabber.framefilter.displayFlowField();
 		
 	} else if (enableGame) {
 		//1. Drawing into fbo buffer
@@ -214,6 +217,7 @@ void ofApp::drawProj(ofEventArgs & args){
 		for (auto & v : vehicles){
 			v.draw();
 		}
+		kinectgrabber.framefilter.displayFlowField();
 	} else {
 		ofBackground(255);
 	}

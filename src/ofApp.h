@@ -69,6 +69,7 @@ private:
 
     ofxCvGrayscaleImage     FilteredDepthImage;
     ofxCvColorImage         kinectColorImage;
+    ofVec2f*                gradientField;
     
     vector<vehicle> vehicles;
 

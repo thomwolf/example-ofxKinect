@@ -49,8 +49,8 @@ void KinectGrabber::setup(){
     kinectColorImage.setUseTexture(false);
 }
 
-void KinectGrabber::setupFramefilter(int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution) {
-    framefilter.setup(kinectWidth, kinectHeight, sNumAveragingSlots, newMinNumSamples, newMaxVariance, newHysteresis, newSpatialFilter, gradFieldresolution);
+void KinectGrabber::setupFramefilter(int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution, float snearclip, float sfarclip) {
+    framefilter.setup(kinectWidth, kinectHeight, sNumAveragingSlots, newMinNumSamples, newMaxVariance, newHysteresis, newSpatialFilter, gradFieldresolution, snearclip, sfarclip);
     // framefilter.startThread();
 }
 
@@ -121,13 +121,9 @@ void KinectGrabber::threadedFunction(){
                     // If new filtered image => send back to main thread
 #if __cplusplus>=201103
                     colored.send(std::move(kinectColorImage.getPixels()));
-#else
-                    colored.send(kinectColorImage.getPixels());
-#endif
-                    
-#if __cplusplus>=201103
                     filtered.send(std::move(kinectDepthImage.getPixels()));
 #else
+                    colored.send(kinectColorImage.getPixels());
                     filtered.send(kinectDepthImage.getPixels());
 #endif
                     lock();
@@ -140,11 +136,14 @@ void KinectGrabber::threadedFunction(){
                     ofPixels filteredframe;
                     filteredframe = framefilter.filter(kinectDepthImage.getPixels());
                     filteredframe.setImageType(OF_IMAGE_GRAYSCALE);
+                    
                     // If new filtered image => send back to main thread
 #if __cplusplus>=201103
                     filtered.send(std::move(filteredframe));
+                    gradient.send(std::move(framefilter.getGradField()));
 #else
                     filtered.send(filteredframe);
+                    gradient.send(framefilter.getGradField());
 #endif
                     lock();
                     storedframes += 1;
@@ -158,8 +157,9 @@ void KinectGrabber::threadedFunction(){
         float sfarclip = farclip;
         if(nearclipchannel.tryReceive(snearclip) || farclipchannel.tryReceive(sfarclip)) {
             while(nearclipchannel.tryReceive(snearclip) || farclipchannel.tryReceive(sfarclip)) {
-            }
+            } // clear queue
             kinect.setDepthClipping(snearclip, sfarclip);
+            framefilter.setDepthRange(snearclip, sfarclip);
             framefilter.resetBuffers();
         
         }

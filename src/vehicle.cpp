@@ -23,14 +23,7 @@ ofPoint vehicle::borders(){
     ofPoint predict(velocity);
     predict *= 10;
     ofPoint futureLocation(location);
-    
     futureLocation += predict;
-    
-//    ofPoint distFromCircleCentre(circleLocation);
-//    
-//    distFromCircleCentre -= futureLocation;
-//    
-//    float distance = distFromCircleCentre.length();
     
     ofPoint leave(location);
     if (futureLocation.x < border)
@@ -42,8 +35,6 @@ ofPoint vehicle::borders(){
     if (futureLocation.y > screenHeight-border)
         leave.y = 0;
     
-//    if (distance > circleRadius * 0.6) {
-//        
         leave -= location;
         leave.normalize();
         leave *= velocity.length();
@@ -58,23 +49,45 @@ ofPoint vehicle::borders(){
         steer -= velocity;
         //            PVector steer = PVector.sub(desired, velocity);
         steer.limit(maxForce);
-//        applyForce(steer);
     }
+    return steer;
+}
+
+//--------------------------------------------------------------
+ofPoint vehicle::slopes(ofVec2f* gradient){
+    ofPoint desired;
     
-//    ofSetColor(255,0,0);
-//    ofCircle(futureLocation.x,futureLocation.y,4,4);
-//    
-//
-//    ofPoint desired = ofPoint(0);
-//    
-//    desired*=maxForce;
+    // Predict location 5 (arbitrary choice) frames ahead
+    ofPoint predict(velocity);
+    predict *= 10;
+    ofPoint futureLocation(location);
+    futureLocation += predict;
     
-//    ofPoint steer;
-//    steer = desired - velocity;
-//    steer.limit(maxForce);
-//    
-//    if (steer != ofPoint(0))
-//        cout << steer << endl;
+    ofPoint leave(location);
+    if (futureLocation.x < border)
+        leave.x = screenWidth;
+    if (futureLocation.y < border)
+        leave.y = screenHeight;
+    if (futureLocation.x > screenWidth-border)
+        leave.x = 0;
+    if (futureLocation.y > screenHeight-border)
+        leave.y = 0;
+    
+    leave -= location;
+    leave.normalize();
+    leave *= velocity.length();
+    leave += velocity;
+    
+    desired.set(leave);
+    desired.normalize();
+    desired *= topSpeed;
+    
+    ofPoint steer(desired);
+    if (desired.length() != 0) {
+        steer -= velocity;
+        //            PVector steer = PVector.sub(desired, velocity);
+        steer.limit(maxForce);
+    }
     return steer;
 }
 
@@ -123,19 +136,22 @@ ofPoint vehicle::separate(vector<vehicle> vehicles){
 }
 
 //--------------------------------------------------------------
-void vehicle::applyBehaviours(vector<vehicle> vehicles){
+void vehicle::applyBehaviours(vector<vehicle> vehicles, ofVec2f* gradient){
 
     ofPoint mouse(ofGetMouseX(), ofGetMouseY());
     
     ofPoint separateForce = separate(vehicles);
     ofPoint seekForce = seek(mouse);
-    ofPoint fieldForce = borders();
+    ofPoint border = borders();
+    ofPoint slope = slopes(gradient);
     
     separateForce*=2;
     seekForce *= 1;
-    fieldForce *=3;
+    border *=3;
+    slope *= 2;
     
-    applyForce(fieldForce);
+    applyForce(slope);
+    applyForce(border);
     applyForce(separateForce);
     applyForce(seekForce);
 }
