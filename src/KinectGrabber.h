@@ -22,6 +22,7 @@ public:
     void setCalibrationmode();
     void setTestmode();
     //void update();
+    ofPixels convertProjSpace(ofPixels sinputframe);
 	bool isFrameNew();
     int storedframes;//, storedcoloredframes;
 	ofPixels & getPixels();
@@ -34,6 +35,7 @@ public:
 	ofThreadChannel<float> farclipchannel;
 
     KinectProjectorCalibration	kinectProjectorCalibration;
+    KinectProjectorOutput	kinectProjectorOutput;
 //    float                       lowThresh;
 //    float                       highThresh;
     float                       chessboardThreshold;
@@ -60,5 +62,4 @@ private:
     // calibration
     RGBDCamCalibWrapper*	kinectWrapper;
     // output
-    KinectProjectorOutput	kinectProjectorOutput;
 };

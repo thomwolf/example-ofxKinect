@@ -220,13 +220,16 @@ ofPixels FrameFilter::filter(ofPixels inputframe){
     //
     //   return inputframe; ///////////////////////////////////////////////////////////////////
     
+    // Convert in proj space
+//    ofPixels inputframe = convertProjSpace(sinputframe);
+    
     // Create a new output frame: */
     ofPixels newOutputFrame;
     newOutputFrame.allocate(width, height, 1);
     
     /* Initialize a new gradient field buffer and number of valid gradient measures */
-    ofVec2f* valgradField = new ofVec2f[gradFieldcols*gradFieldrows];
-    ofVec2f* newgradField = new ofVec2f[gradFieldcols*gradFieldrows];
+//    ofVec2f* valgradField = new ofVec2f[gradFieldcols*gradFieldrows];
+//    ofVec2f* newgradField = new ofVec2f[gradFieldcols*gradFieldrows];
     //        ofVec2f* vlfPtr=valgradField;
     //        ofVec2f* ngfPtr=newgradField;
     //        for(unsigned int y=0;y<gradFieldrows;++y)

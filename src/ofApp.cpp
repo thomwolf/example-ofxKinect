@@ -19,26 +19,26 @@ void ofApp::setup(){
 	enableGame = false;
 	
 	// kinect depth clipping
-	nearclip = 500;
-	farclip = 4000;
+	nearclip = 750;
+	farclip = 950;
     // framefilter: configure backend
 	int numAveragingSlots=20;
 	unsigned int minNumSamples=10;
 	unsigned int maxVariance=2;
 	float hysteresis=0.1f;
-	bool spatialFilter=true;
+	bool spatialFilter=false;
     
     // calibration config
-	projectorWidth = 640;
-	projectorHeight = 480;
+	projectorWidth = projWindow->getWidth();
+	projectorHeight = projWindow->getHeight();
 	chessboardSize = 100;
 	chessboardColor = 175;
 	StabilityTimeInMs = 500;
 	maxReprojError = 2.0f;
 	chessboardThreshold = 60;
 	gradFieldresolution = 20;
-	horizontalMirror = false;
-	verticalMirror = false;
+	horizontalMirror = true;
+	verticalMirror = true;
 	
     // kinectgrabber: setup
 	kinectgrabber.setup();
@@ -174,8 +174,12 @@ void ofApp::drawProj(ofEventArgs & args){
 	if (enableCalibration) {
 		
 		// draw the chessboard to our second window
+		fbo.begin();		//Start drawing grayscale depth image into buffer
 		ofClear(0);
+		ofSetColor(255, 170, 170);
 		kinectgrabber.kinectProjectorCalibration.drawChessboard();
+		fbo.end();			//End drawing into buffer
+		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
 	} else if (enableTestmode) {
 		
 		//1. Drawing into fbo buffer
@@ -185,16 +189,16 @@ void ofApp::drawProj(ofEventArgs & args){
 		FilteredDepthImage.ofBaseDraws::draw(0, 0, projectorWidth, projectorHeight);
 		fbo.end();			//End drawing into buffer
 		
-		fbo.draw( 0, 0 );
+//		fbo.draw( 0, 0 );
 		//2. Drawing to screen through the shader
 		shader.begin();
 		shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
 		shader.setUniform1f("texsize", 255 );
 		shader.setUniform1f("contourLineFactor", contourlinefactor);
 		ofSetColor( 255, 255, 255 );
-		fbo.draw( 0, 0 );
+		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
 		shader.end();
-		kinectgrabber.framefilter.displayFlowField();
+//		kinectgrabber.framefilter.displayFlowField();
 		
 	} else if (enableGame) {
 		//1. Drawing into fbo buffer
@@ -204,14 +208,14 @@ void ofApp::drawProj(ofEventArgs & args){
 		FilteredDepthImage.ofBaseDraws::draw(0, 0, projectorWidth, projectorHeight);
 		fbo.end();			//End drawing into buffer
 		
-		fbo.draw( 0, 0 );
+//		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
 		//2. Drawing to screen through the shader
 		shader.begin();
 		shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
 		shader.setUniform1f("texsize", 255 );
 		shader.setUniform1f("contourLineFactor", contourlinefactor);
 		ofSetColor( 255, 255, 255 );
-		fbo.draw( 0, 0 );
+		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
 		shader.end();
 		
 		for (auto & v : vehicles){
@@ -367,7 +371,7 @@ void ofApp::setupGui() {
 	guiMappingSettings->setColorBack(ofColor(51, 55, 56, 200));
 	
 	guiMappingSettings->addSpacer(length, 2);
-	guiMappingSettings->addWidgetDown(new ofxUIRangeSlider("Kinect range", 500.0, 4000.0, &nearclip, &farclip, length, dim));
+	guiMappingSettings->addWidgetDown(new ofxUIRangeSlider("Kinect range", 500.0, 1500.0, &nearclip, &farclip, length, dim));
 	
 	guiMappingSettings->addSpacer(length, 2);
 	guiMappingSettings->addWidgetDown(new ofxUISlider("Contourline factor", 0.0, 255, &contourlinefactor, length, dim));
@@ -447,5 +451,6 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 		kinectgrabber.farclipchannel.send(farclip);
 	} else if (name == "Horizontal mirror" || name == "Vertical mirror") {
 		kinectgrabber.kinectProjectorCalibration.setMirrors(horizontalMirror, verticalMirror);
+		kinectgrabber.kinectProjectorOutput.setMirrors(horizontalMirror, verticalMirror);
 	}
 }

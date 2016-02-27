@@ -18,11 +18,12 @@ int main( ){
 	settings.title = "Main";
 	shared_ptr<ofAppBaseWindow> mainWindow = ofCreateWindow(settings);
     
-	settings.width = 640;
-	settings.height = 480;
-	settings.setPosition(ofVec2f(0,0));
+	settings.width = 800;
+	settings.height = 600;
+	settings.setPosition(ofVec2f(-800,0));
 	settings.title = "Proj";
-	settings.resizable = true;
+	settings.resizable = false;
+    settings.decorated = false;
     settings.shareContextWith = mainWindow;
 	// uncomment next line to share main's OpenGL resources with gui
 	//settings.shareContextWith = mainWindow;

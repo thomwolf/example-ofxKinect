@@ -50,6 +50,9 @@ void KinectGrabber::setup(){
 }
 
 void KinectGrabber::setupFramefilter(int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution, float snearclip, float sfarclip) {
+    nearclip =snearclip;
+    farclip =sfarclip;
+    kinect.setDepthClipping(snearclip, sfarclip);
     framefilter.setup(kinectWidth, kinectHeight, sNumAveragingSlots, newMinNumSamples, newMaxVariance, newHysteresis, newSpatialFilter, gradFieldresolution, snearclip, sfarclip);
     // framefilter.startThread();
 }
@@ -65,10 +68,12 @@ void KinectGrabber::setupCalibration(int projectorWidth, int projectorHeight, fl
     kinectProjectorCalibration.chessboardSize = schessboardSize;
     kinectProjectorCalibration.chessboardColor = schessboardColor;
     kinectProjectorCalibration.setStabilityTimeInMs(sStabilityTimeInMs);
+    kinectProjectorCalibration.setMirrors(true, true);
     maxReprojError = smaxReprojError;
     
     // sets the output
     kinectProjectorOutput.setup(kinectWrapper, projectorWidth, projectorHeight);
+    kinectProjectorOutput.setMirrors(true, true);
     kinectProjectorOutput.load("kinectProjector.yml");
 }
 
@@ -80,6 +85,9 @@ void KinectGrabber::setupClip(float snearclip, float sfarclip){
     
     //    if (framefilter.isThreadRunning()){
     //    }
+    nearclip =snearclip;
+    farclip =sfarclip;
+    kinect.setDepthClipping(snearclip, sfarclip);
 }
 
 void KinectGrabber::setTestmode(){
@@ -96,6 +104,40 @@ void KinectGrabber::setCalibrationmode(){
 
 bool KinectGrabber::isFrameNew(){
 	return newFrame;
+}
+
+
+ofPixels KinectGrabber::convertProjSpace(ofPixels inputframe){
+    // Create a new output frame: */
+    ofPixels newOutputFrame;
+    newOutputFrame.allocate(kinectWidth, kinectHeight, 1);
+    newOutputFrame.set(0);
+    
+    unsigned char* ifPtr=static_cast<unsigned char*>(inputframe.getData());
+    unsigned char* nofPtr=static_cast<unsigned char*>(newOutputFrame.getData());
+    
+    ofPoint v1, v2; // v1.x is 0, v1.y is 0, v1.z is 0
+    int ind;
+    for(unsigned int y=0;y<kinectHeight;y = y + 1)
+    {
+        for(unsigned int x=0;x<kinectWidth;x = x + 1)
+        {
+            float z  = (farclip+nearclip)/2;
+            //cout << "iptr: " << (int)ifPtr[y*kinectWidth+x] << endl;
+            if (ifPtr[y*kinectWidth+x] != 0)
+                z = (255-ifPtr[y*kinectWidth+x])/255*(farclip-nearclip)+nearclip;
+            v1.set(x, y, z);// = ofPoint(
+            v2 = kinectProjectorOutput.projectFromDepthXY(v1);
+           // cout << "v1: " << v1 << endl;
+           // cout << "v2: " << v2 << endl;
+            if (v2.y >= 0 && v2.y < 600 && v2.x >=0 && v2.x < 800) {
+                ind = (int)floorf(v2.y)*800+(int)floorf(v2.x);
+                nofPtr[ind]=z;
+            }
+        }
+    }
+    //newOutputFrame = inputframe;
+    return newOutputFrame;
 }
 
 void KinectGrabber::threadedFunction(){
@@ -133,16 +175,18 @@ void KinectGrabber::threadedFunction(){
                 }
                 // if the test mode is activated, the settings are loaded automatically (see gui function)
                 if (enableTestmode) {
-                    ofPixels filteredframe;
+                    ofPixels filteredframe, kinectProjImage;
                     filteredframe = framefilter.filter(kinectDepthImage.getPixels());
                     filteredframe.setImageType(OF_IMAGE_GRAYSCALE);
+                    kinectProjImage = convertProjSpace(filteredframe);
+                    kinectProjImage.setImageType(OF_IMAGE_GRAYSCALE);
                     
                     // If new filtered image => send back to main thread
 #if __cplusplus>=201103
-                    filtered.send(std::move(filteredframe));
+                    filtered.send(std::move(kinectProjImage));
                     gradient.send(std::move(framefilter.getGradField()));
 #else
-                    filtered.send(filteredframe);
+                    filtered.send(kinectProjImage);
                     gradient.send(framefilter.getGradField());
 #endif
                     lock();
