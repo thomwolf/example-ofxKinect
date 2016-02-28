@@ -73,7 +73,7 @@ void KinectGrabber::setupCalibration(int projectorWidth, int projectorHeight, fl
     
     // sets the output
     kinectProjectorOutput.setup(kinectWrapper, projectorWidth, projectorHeight);
-    kinectProjectorOutput.setMirrors(true, true);
+    kinectProjectorOutput.setMirrors(false, false);//true, true);
     kinectProjectorOutput.load("kinectProjector.yml");
 }
 
@@ -118,25 +118,25 @@ ofPixels KinectGrabber::convertProjSpace(ofPixels inputframe){
     
     ofPoint v1, v2; // v1.x is 0, v1.y is 0, v1.z is 0
     int ind;
-    for(unsigned int y=0;y<kinectHeight;y = y + 1)
-    {
-        for(unsigned int x=0;x<kinectWidth;x = x + 1)
-        {
-            float z  = (farclip+nearclip)/2;
-            //cout << "iptr: " << (int)ifPtr[y*kinectWidth+x] << endl;
-            if (ifPtr[y*kinectWidth+x] != 0)
-                z = (255-ifPtr[y*kinectWidth+x])/255*(farclip-nearclip)+nearclip;
-            v1.set(x, y, z);// = ofPoint(
-            v2 = kinectProjectorOutput.projectFromDepthXY(v1);
-           // cout << "v1: " << v1 << endl;
-           // cout << "v2: " << v2 << endl;
-            if (v2.y >= 0 && v2.y < 600 && v2.x >=0 && v2.x < 800) {
-                ind = (int)floorf(v2.y)*800+(int)floorf(v2.x);
-                nofPtr[ind]=z;
-            }
-        }
-    }
-    //newOutputFrame = inputframe;
+//    for(unsigned int y=0;y<kinectHeight;y = y + 1)
+//    {
+//        for(unsigned int x=0;x<kinectWidth;x = x + 1)
+//        {
+//            float z  = (farclip+nearclip)/2;
+//            //cout << "iptr: " << (int)ifPtr[y*kinectWidth+x] << endl;
+//            if (ifPtr[y*kinectWidth+x] != 0)
+//                z = (255-ifPtr[y*kinectWidth+x])/255*(farclip-nearclip)+nearclip;
+//            v1.set(x, y, z);// = ofPoint(
+//            v2 = kinectProjectorOutput.projectFromDepthXY(v1);
+//           // cout << "v1: " << v1 << endl;
+//           // cout << "v2: " << v2 << endl;
+//            if (v2.y >= 0 && v2.y < 600 && v2.x >=0 && v2.x < 800) {
+//                ind = (int)floorf(v2.y)*800+(int)floorf(v2.x);
+//                nofPtr[ind]=z;
+//            }
+//        }
+//    }
+    newOutputFrame = inputframe;
     return newOutputFrame;
 }
 

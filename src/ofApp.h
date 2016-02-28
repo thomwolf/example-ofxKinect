@@ -61,13 +61,16 @@ private:
 	int maxdepth;
     float contourlinefactor;
     bool horizontalMirror, verticalMirror;
+    float                       lowThresh;
+    float                       highThresh;
 
     ofShader                    shader;            //Shader
     ofFbo                       fbo;			//Buffer for intermediate drawing
     ColorMap                    colormap;
     KinectGrabber               kinectgrabber;
 
-    ofxCvGrayscaleImage     FilteredDepthImage;
+    ofxCv::ContourFinder        contourFinder;
+    ofxCvGrayscaleImage     FilteredDepthImage, thresholdedImage;
     ofxCvColorImage         kinectColorImage;
     ofVec2f*                gradientField;
     

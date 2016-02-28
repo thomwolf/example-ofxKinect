@@ -34,6 +34,8 @@ public:
 	ofThreadChannel<float> nearclipchannel;
 	ofThreadChannel<float> farclipchannel;
 
+    ofxKinect               kinect;
+    RGBDCamCalibWrapper*	kinectWrapper;
     KinectProjectorCalibration	kinectProjectorCalibration;
     KinectProjectorOutput	kinectProjectorOutput;
 //    float                       lowThresh;
@@ -51,7 +53,6 @@ private:
 	bool enableCalibration, enableTestmode;
     
     // kinect & the wrapper
-    ofxKinect               kinect;
     float                   nearclip, farclip;
     int kinectWidth, kinectHeight;
     ofxCvColorImage         kinectColorImage;
@@ -60,6 +61,5 @@ private:
     //   ofImage                 kinectColoredDepth;
     float maxReprojError;
     // calibration
-    RGBDCamCalibWrapper*	kinectWrapper;
     // output
 };

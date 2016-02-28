@@ -419,8 +419,8 @@ void FrameFilter::updateGradientField()
     RawDepth* nofPtr=outputframe.getData();
     for(unsigned int y=0;y<gradFieldrows;++y) {
         for(unsigned int x=0;x<gradFieldcols;++x) {
-            if (x==7 && y ==7)
-                cout << "hop" << endl;
+//            if (x==7 && y ==7)
+//                cout << "hop" << endl;
             gx = 0;
             gvx = 0;
             gy = 0;
@@ -445,7 +445,7 @@ void FrameFilter::updateGradientField()
             }
         }
     }
-    cout << "Max gradient: " << lgth << endl;
+//    cout << "Max gradient: " << lgth << endl;
 }
 
 

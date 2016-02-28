@@ -286,11 +286,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ofApp.cpp"
-            timestampString = "477939810.833818"
+            timestampString = "478275113.301873"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "73"
-            endingLineNumber = "73"
+            startingLineNumber = "84"
+            endingLineNumber = "84"
             landmarkName = "ofApp::update()"
             landmarkType = "5">
          </BreakpointContent>
@@ -366,11 +366,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ofApp.cpp"
-            timestampString = "478186830.825971"
+            timestampString = "478385513.156333"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "221"
-            endingLineNumber = "221"
+            startingLineNumber = "277"
+            endingLineNumber = "277"
             landmarkName = "ofApp::drawProj(ofEventArgs &amp; args)"
             landmarkType = "5">
             <Locations>
@@ -525,14 +525,190 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "src/KinectGrabber.cpp"
-            timestampString = "478225143.031497"
+            filePath = "src/ofApp.cpp"
+            timestampString = "478275826.401635"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "129"
-            endingLineNumber = "129"
-            landmarkName = "KinectGrabber::convertProjSpace(ofPixels inputframe)"
+            startingLineNumber = "238"
+            endingLineNumber = "238"
+            landmarkName = "ofApp::drawProj(ofEventArgs &amp; args)"
             landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
+            timestampString = "478301615.797071"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "359"
+            endingLineNumber = "359"
+            landmarkName = "KinectProjectorCalibration::drawReprojectedPointsDebug(float x, float y, float width, float height)"
+            landmarkType = "5">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "KinectProjectorCalibration::drawReprojectedPointsDebug(float, float, float, float)"
+                  moduleName = "example_ofxKinectDebug"
+                  urlString = "file://localhost/Users/thomaswolf/of_v0.9.2_osx_release/addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
+                  timestampString = "478303080.924242"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "359"
+                  endingLineNumber = "359"
+                  offsetFromSymbolStart = "334">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "KinectProjectorCalibration::drawReprojectedPointsDebug(float, float, float, float)"
+                  moduleName = "example_ofxKinectDebug"
+                  urlString = "file://localhost/Users/thomaswolf/of_v0.9.2_osx_release/addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
+                  timestampString = "478303080.92466"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "359"
+                  endingLineNumber = "359"
+                  offsetFromSymbolStart = "379">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "KinectProjectorCalibration::drawReprojectedPointsDebug(float, float, float, float)"
+                  moduleName = "example_ofxKinectDebug"
+                  urlString = "file://localhost/Users/thomaswolf/of_v0.9.2_osx_release/addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
+                  timestampString = "478303080.92517"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "359"
+                  endingLineNumber = "359"
+                  offsetFromSymbolStart = "933">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
+            timestampString = "478301673.995081"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "362"
+            endingLineNumber = "362"
+            landmarkName = "KinectProjectorCalibration::drawReprojectedPointsDebug(float x, float y, float width, float height)"
+            landmarkType = "5">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "KinectProjectorCalibration::drawReprojectedPointsDebug(float, float, float, float)"
+                  moduleName = "example_ofxKinectDebug"
+                  urlString = "file://localhost/Users/thomaswolf/of_v0.9.2_osx_release/addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
+                  timestampString = "478301673.997129"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "362"
+                  endingLineNumber = "362"
+                  offsetFromSymbolStart = "532">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "KinectProjectorCalibration::drawReprojectedPointsDebug(float, float, float, float)"
+                  moduleName = "example_ofxKinectDebug"
+                  urlString = "file://localhost/Users/thomaswolf/of_v0.9.2_osx_release/addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
+                  timestampString = "478301673.997435"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "362"
+                  endingLineNumber = "362"
+                  offsetFromSymbolStart = "563">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "KinectProjectorCalibration::drawReprojectedPointsDebug(float, float, float, float)"
+                  moduleName = "example_ofxKinectDebug"
+                  urlString = "file://localhost/Users/thomaswolf/of_v0.9.2_osx_release/addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
+                  timestampString = "478301673.997656"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "362"
+                  endingLineNumber = "362"
+                  offsetFromSymbolStart = "609">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
+            timestampString = "478303196.667991"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "360"
+            endingLineNumber = "360"
+            landmarkName = "KinectProjectorCalibration::drawReprojectedPointsDebug(float x, float y, float width, float height)"
+            landmarkType = "5">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "KinectProjectorCalibration::drawReprojectedPointsDebug(float, float, float, float)"
+                  moduleName = "example_ofxKinectDebug"
+                  urlString = "file://localhost/Users/thomaswolf/of_v0.9.2_osx_release/addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
+                  timestampString = "478303196.672277"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "360"
+                  endingLineNumber = "360"
+                  offsetFromSymbolStart = "387">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "KinectProjectorCalibration::drawReprojectedPointsDebug(float, float, float, float)"
+                  moduleName = "example_ofxKinectDebug"
+                  urlString = "file://localhost/Users/thomaswolf/of_v0.9.2_osx_release/addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
+                  timestampString = "478303196.672782"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "360"
+                  endingLineNumber = "360"
+                  offsetFromSymbolStart = "415">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.SymbolicBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            symbolName = ""
+            moduleName = "">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

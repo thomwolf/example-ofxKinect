@@ -18,6 +18,17 @@ void ofApp::setup(){
 	enableTestmode	  = true;
 	enableGame = false;
 	
+    // contourFinder config
+	chessboardThreshold = 60;
+	lowThresh = 0.2;
+	highThresh = 0.3;
+	contourFinder.setMinAreaRadius(12);
+	contourFinder.setThreshold(3);
+	contourFinder.getTracker().setPersistence(25);
+	contourFinder.getTracker().setMaximumDistance(150);
+	contourFinder.setFindHoles(false);
+	contourFinder.setInvert(false);
+	
 	// kinect depth clipping
 	nearclip = 750;
 	farclip = 950;
@@ -72,6 +83,17 @@ void ofApp::update(){
 		kinectgrabber.storedframes -= 1;
 		//		cout << kinectgrabber.storedframes << endl;
 		kinectgrabber.unlock();
+		
+		thresholdedImage.setFromPixels(FilteredDepthImage.getPixels());
+		
+		if (enableTestmode){
+			// find our contours in the label image
+			if (highThresh != 1.0) cvThreshold(thresholdedImage.getCvImage(), thresholdedImage.getCvImage(), highThresh * 255, 255, CV_THRESH_TOZERO_INV);
+			if (lowThresh != 0.0) cvThreshold(thresholdedImage.getCvImage(), thresholdedImage.getCvImage(), lowThresh * 255, 255, CV_THRESH_TOZERO);
+			contourFinder.findContours(thresholdedImage);
+			
+		}
+		
 	}
 	
 	if (enableCalibration) {
@@ -96,7 +118,7 @@ void ofApp::update(){
 			}
 		}
 	}
-	
+
 	if (enableGame) {
 		if (kinectgrabber.gradient.tryReceive(gradientField)) {
 			for (auto & v : vehicles){
@@ -116,8 +138,9 @@ void ofApp::draw(){
 	ofBackground(0);
 	ofSetColor(255);
 	
+	ofClear(0);
+	ofTranslate(320,0);
 	if (enableCalibration) {
-		ofTranslate(320,0);
 		ofDrawBitmapString("Kinect Input",0,20);
 		kinectColorImage.draw(0,40,320,240);
 		FilteredDepthImage.draw(0,20+240+40+40,320,240);
@@ -161,9 +184,21 @@ void ofApp::draw(){
 		//		ofScale(2.0, 2.0);
 		//		ofTranslate(-(320+20), -(20+240+20+40+20));
 		//
-		ofTranslate(-320,0);
-		ofSetColor(255);
+	} else if (enableTestmode) {
+		ofDrawBitmapString("Grayscale Image",0,20+240+20+40);
+		FilteredDepthImage.draw(0,20+240+40+40,320,240);
+		
+		ofDrawBitmapString("Contours",320+20,20+240+20+40);
+		
+		ofTranslate(320+20, 20+240+20+40+20);
+		ofScale(0.5, 0.5);
+		contourFinder.draw();
+		ofScale(2.0, 2.0);
+		ofTranslate(-(320+20), -(20+240+20+40+20));
+		
 	}
+	ofTranslate(-320,0);
+	ofSetColor(255);
 	
     gui->draw();
 }
@@ -189,7 +224,7 @@ void ofApp::drawProj(ofEventArgs & args){
 		FilteredDepthImage.ofBaseDraws::draw(0, 0, projectorWidth, projectorHeight);
 		fbo.end();			//End drawing into buffer
 		
-//		fbo.draw( 0, 0 );
+		//		fbo.draw( 0, 0 );
 		//2. Drawing to screen through the shader
 		shader.begin();
 		shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
@@ -198,7 +233,31 @@ void ofApp::drawProj(ofEventArgs & args){
 		ofSetColor( 255, 255, 255 );
 		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
 		shader.end();
-//		kinectgrabber.framefilter.displayFlowField();
+		//		kinectgrabber.framefilter.displayFlowField();
+		ofSetColor(255, 190, 70);
+		ofPoint cent = ofPoint(projectorWidth/2, projectorHeight/2);
+		for (int i = 0; i < contourFinder.size(); i++) {
+			
+			ofPolyline blobContour = contourFinder.getPolyline(i);
+			if(!blobContour.isClosed()){
+				blobContour.close();
+			}
+			
+			//if (!blobContour.inside(cent)) {
+			ofPolyline rect = blobContour.getResampledByCount(8);
+				ofBeginShape();
+			kinectgrabber.lock();
+				for (int j = 0; j < rect.size() - 1; j++) {
+					rect[j].z = (farclip-nearclip)*highThresh+nearclip;
+					ofPoint wrld = kinectgrabber.kinectWrapper->getWorldFromRgbCalibratedXYZ(rect[j], true,true);
+					ofPoint currVertex = kinectgrabber.kinectProjectorOutput.projectFromDepthXYZ(rect[j]);
+					ofVertex(currVertex.x, currVertex.y);
+//					cout << "blob j: "<< j << " rect: "<< rect[j] << " wrld: " << wrld << " currVertex : " << currVertex << endl;
+				}
+			kinectgrabber.unlock();
+				ofEndShape();
+			//}
+		}
 		
 	} else if (enableGame) {
 		//1. Drawing into fbo buffer
@@ -208,7 +267,7 @@ void ofApp::drawProj(ofEventArgs & args){
 		FilteredDepthImage.ofBaseDraws::draw(0, 0, projectorWidth, projectorHeight);
 		fbo.end();			//End drawing into buffer
 		
-//		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
+		//		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
 		//2. Drawing to screen through the shader
 		shader.begin();
 		shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
@@ -324,6 +383,7 @@ void ofApp::setupGui() {
 	gui->addSpacer(length, 2);
 	gui->addWidgetDown(new ofxUIFPS(OFX_UI_FONT_MEDIUM));
 	
+	gui->setPosition(0, 0);//768 - guiImageSettings->getRect()->getHeight());
     gui->autoSizeToFitWidgets();
     
     ofAddListener(gui->newGUIEvent,this,&ofApp::guiEvent);
@@ -375,9 +435,11 @@ void ofApp::setupGui() {
 	
 	guiMappingSettings->addSpacer(length, 2);
 	guiMappingSettings->addWidgetDown(new ofxUISlider("Contourline factor", 0.0, 255, &contourlinefactor, length, dim));
+	guiMappingSettings->addSpacer(length, 2);
+	guiMappingSettings->addWidgetDown(new ofxUIRangeSlider("Threshold", 0.0, 1.0, &lowThresh, &highThresh, length, dim));
 	
 	guiMappingSettings->autoSizeToFitWidgets();
-	guiMappingSettings->setPosition(640 - guiMappingSettings->getRect()->getWidth(), 0);
+	guiMappingSettings->setPosition(1280 - guiMappingSettings->getRect()->getWidth(), 0);
 	//guiImageSettings->toggleMinified();
 	ofAddListener(guiMappingSettings->newGUIEvent,this,&ofApp::guiEvent);
     

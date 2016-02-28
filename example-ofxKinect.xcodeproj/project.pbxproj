@@ -346,7 +346,7 @@
 		B712B9F51C6E3D0E00D3C52F /* ofxSliderGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxSliderGroup.h; sourceTree = "<group>"; };
 		B712B9F61C6E3D0E00D3C52F /* ofxToggle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxToggle.cpp; sourceTree = "<group>"; };
 		B712B9F71C6E3D0E00D3C52F /* ofxToggle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxToggle.h; sourceTree = "<group>"; };
-		B718468D1C73B86A00AAEA3D /* ColorMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorMap.cpp; sourceTree = "<group>"; };
+		B718468D1C73B86A00AAEA3D /* ColorMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ColorMap.cpp; path = src/ColorMap.cpp; sourceTree = "<group>"; };
 		B718468E1C73B86A00AAEA3D /* ColorMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorMap.h; sourceTree = "<group>"; };
 		B724FB2C1C765F46004C21CC /* FrameFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FrameFilter.cpp; sourceTree = "<group>"; };
 		B724FB2D1C765F46004C21CC /* FrameFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FrameFilter.h; sourceTree = "<group>"; };
@@ -830,6 +830,7 @@
 		9683228C705CA3FF4F2EA945 /* ofxKinect */ = {
 			isa = PBXGroup;
 			children = (
+				B718468D1C73B86A00AAEA3D /* ColorMap.cpp */,
 				F3D2DB7201EFA9F7958F421E /* src */,
 				F4101FC676C210E28DCB3220 /* libs */,
 			);
@@ -1188,7 +1189,6 @@
 				B724FB2D1C765F46004C21CC /* FrameFilter.h */,
 				B7E0B5701C75E6E3002DE865 /* shaderFrag.c */,
 				B7E0B5711C75E6E3002DE865 /* shaderVert.c */,
-				B718468D1C73B86A00AAEA3D /* ColorMap.cpp */,
 				B718468E1C73B86A00AAEA3D /* ColorMap.h */,
 				E4B69E1D0A3A1BDC003C02F2 /* main.cpp */,
 				E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */,
