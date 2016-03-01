@@ -54,7 +54,7 @@ private:
     
     // kinect & the wrapper
     float                   nearclip, farclip;
-    int kinectWidth, kinectHeight;
+    int kinectWidth, kinectHeight, projWidth, projHeight;
     ofxCvColorImage         kinectColorImage;
 //    ofxCvGrayscaleImage		kinectGreyscaledImage;
     ofxCvGrayscaleImage     kinectDepthImage;

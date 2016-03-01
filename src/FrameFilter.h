@@ -7,7 +7,12 @@
 
 #pragma once
 #include "ofMain.h"
+#include "ofxCv.h"
+#include "ofxKinect.h"
 #include <vector>
+
+using namespace ofxCv;
+using namespace cv;
 
 class FrameFilter /*: public ofThread */{
 public:
@@ -20,7 +25,7 @@ public:
     FrameFilter();
     ~FrameFilter();
     
-    bool setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution,float snearclip, float sfarclip);
+    bool setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution,float snearclip, float sfarclip, void* _backend);
     void initiateBuffers(void); // Reinitialise buffers
     void resetBuffers(void);
    void setDepthRange(float nearclip, float farclip);
@@ -28,6 +33,7 @@ public:
     bool isFrameNew();
     ofVec2f getGradFieldXY(int x, int y); // gradient field at pos x, y
     ofVec2f* getGradField(); // gradient field
+    Point3f* getWrldcoordbuffer();
 //    void draw(float x, float y);
 //    void draw(float x, float y, float w, float h);
 	void setValidDepthInterval(unsigned int newMinDepth,unsigned int newMaxDepth); // Sets the interval of depth values considered by the depth image filter
@@ -43,6 +49,8 @@ public:
     ofPixels filter(ofPixels inputframe);
     
 private:
+    ofxKinect * backend;
+
     ofPixels inputframe;
     ofPixels outputframe;
     ofTexture texture;
@@ -53,6 +61,9 @@ private:
     int gradFieldcols, gradFieldrows;
     int gradFieldresolution;           //Resolution of grid relative to window width and height in pixels
     float maxgradfield, depthrange;
+    
+    Point3f* wrldcoordbuffer; // Buffer retaining world coordinates of points
+    float nearclip, farclip; // nearclip and farclip of kinect
     
     unsigned int width, height; // Width and height of processed frames
     unsigned int inputFrameVersion; // Version number of input frame

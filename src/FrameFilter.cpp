@@ -16,7 +16,7 @@ FrameFilter::FrameFilter(): newFrame(true), bufferInitiated(false)
 {
 }
 
-bool FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int sgradFieldresolution, float nearclip, float farclip)
+bool FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int sgradFieldresolution, float snearclip, float sfarclip, void* _backend)
 {
 	/* Settings variables : */
 	width = swidth;
@@ -36,7 +36,10 @@ bool FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int
 	retainValids=true;
 	instableValue=0.0;
     maxgradfield = 1000;
-    depthrange = farclip-nearclip;
+    
+    nearclip = snearclip;
+    farclip = sfarclip;
+    depthrange = sfarclip-snearclip;
     
     minNumSamples=newMinNumSamples;
     maxVariance=newMaxVariance;
@@ -54,6 +57,14 @@ bool FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int
     gradFieldrows = height / sgradFieldresolution;
     std::cout<< "Height: " << height << " Rows: " << gradFieldrows <<std::endl;
     
+    // cast the kinect backend
+    backend = static_cast <ofxKinect *>(_backend);
+    // check if the backend is connected & capturing calibrated video
+    if(!backend->isConnected()){
+        ofLog(OF_LOG_ERROR, "Please open the kinect prior to setting the Framefilter");
+        return;
+    }
+    
     //setting buffers
 	initiateBuffers();
     
@@ -69,6 +80,7 @@ FrameFilter::~FrameFilter(){
     delete[] averagingBuffer;
     delete[] statBuffer;
     delete[] validBuffer;
+    delete[] wrldcoordbuffer;
     delete[] gradField;
     //	waitForThread(true);
 }
@@ -79,6 +91,7 @@ void FrameFilter::resetBuffers(void){
         delete[] averagingBuffer;
         delete[] statBuffer;
         delete[] validBuffer;
+        delete[] wrldcoordbuffer;
         delete[] gradField;
     }
     initiateBuffers();
@@ -119,16 +132,25 @@ void FrameFilter::initiateBuffers(void){
         for(unsigned int x=0;x<gradFieldcols;++x,++gfPtr)
             *gfPtr=ofVec2f(0);
     
+    /* Initialize the gradient field buffer: */
+    wrldcoordbuffer = new Point3f[height*width];
+    Point3f* wcPtr=wrldcoordbuffer;
+    for(unsigned int y=0;y<height;++y)
+        for(unsigned int x=0;x<width;++x,++wcPtr)
+            *wcPtr=Point3f(0, 0, 0);
+    
     bufferInitiated = true;
 }
-void FrameFilter::setDepthRange(float nearclip, float farclip){
+void FrameFilter::setDepthRange(float snearclip, float sfarclip){
     // send the frame to the thread for analyzing
     // this makes a copy but we can't avoid it anyway if
     // we want to update the grabber while analyzing
     // previous frames
     //    ++inputFrameVersion;
     //    toAnalyze.send(inputframe);
-    depthrange = farclip-nearclip;
+    nearclip = snearclip;
+    farclip = sfarclip;
+    depthrange = sfarclip-snearclip;
 }
 
 void FrameFilter::update(){
@@ -161,6 +183,10 @@ ofVec2f FrameFilter::getGradFieldXY(int x, int y){
 
 ofVec2f* FrameFilter::getGradField(){
     return gradField;
+}
+
+Point3f* FrameFilter::getWrldcoordbuffer(){
+    return wrldcoordbuffer;
 }
 
 void FrameFilter::displayFlowField()
@@ -221,15 +247,15 @@ ofPixels FrameFilter::filter(ofPixels inputframe){
     //   return inputframe; ///////////////////////////////////////////////////////////////////
     
     // Convert in proj space
-//    ofPixels inputframe = convertProjSpace(sinputframe);
+    //    ofPixels inputframe = convertProjSpace(sinputframe);
     
     // Create a new output frame: */
     ofPixels newOutputFrame;
     newOutputFrame.allocate(width, height, 1);
     
     /* Initialize a new gradient field buffer and number of valid gradient measures */
-//    ofVec2f* valgradField = new ofVec2f[gradFieldcols*gradFieldrows];
-//    ofVec2f* newgradField = new ofVec2f[gradFieldcols*gradFieldrows];
+    //    ofVec2f* valgradField = new ofVec2f[gradFieldcols*gradFieldrows];
+    //    ofVec2f* newgradField = new ofVec2f[gradFieldcols*gradFieldrows];
     //        ofVec2f* vlfPtr=valgradField;
     //        ofVec2f* ngfPtr=newgradField;
     //        for(unsigned int y=0;y<gradFieldrows;++y)
@@ -245,6 +271,7 @@ ofPixels FrameFilter::filter(ofPixels inputframe){
     unsigned int* sPtr=statBuffer;
     RawDepth* ofPtr=validBuffer; // static_cast<const float*>(outputFrame.getBuffer());
     RawDepth* nofPtr=static_cast<RawDepth*>(newOutputFrame.getData());
+    float z;
     
     for(unsigned int y=0;y<height;++y)
     {
@@ -303,6 +330,9 @@ ofPixels FrameFilter::filter(ofPixels inputframe){
                 {
                     /* Set the output pixel value to the depth-corrected running mean: */
                     *nofPtr=*ofPtr=newFiltered;
+                    // Update world coordonate of point
+                    z = (255.0-newFiltered)/255.0*(farclip-nearclip)+nearclip;
+//                    wrldcoordbuffer[y*width+x]=toCv(backend->getWorldCoordinateAt(x, y, z));
                 }
                 else
                 {
@@ -419,8 +449,8 @@ void FrameFilter::updateGradientField()
     RawDepth* nofPtr=outputframe.getData();
     for(unsigned int y=0;y<gradFieldrows;++y) {
         for(unsigned int x=0;x<gradFieldcols;++x) {
-//            if (x==7 && y ==7)
-//                cout << "hop" << endl;
+            //            if (x==7 && y ==7)
+            //                cout << "hop" << endl;
             gx = 0;
             gvx = 0;
             gy = 0;
@@ -445,7 +475,7 @@ void FrameFilter::updateGradientField()
             }
         }
     }
-//    cout << "Max gradient: " << lgth << endl;
+    //    cout << "Max gradient: " << lgth << endl;
 }
 
 

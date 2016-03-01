@@ -48,6 +48,8 @@ public:
 private:
     
     bool                        enableTestmode, enableCalibration, enableGame;
+    int                         gotROI;
+    ofRectangle                 kinectROI;
     
     // calibration settings
     int                         projectorWidth;
@@ -59,6 +61,10 @@ private:
     float   chessboardSize, chessboardColor,chessboardThreshold, maxReprojError, StabilityTimeInMs;
 	int mindepth;
 	int maxdepth;
+    
+    int threshold;
+    ofPolyline large;
+    
     float contourlinefactor;
     bool horizontalMirror, verticalMirror;
     float                       lowThresh;
@@ -69,7 +75,7 @@ private:
     ColorMap                    colormap;
     KinectGrabber               kinectgrabber;
 
-    ofxCv::ContourFinder        contourFinder;
+    ofxCvContourFinder        contourFinder;
     ofxCvGrayscaleImage     FilteredDepthImage, thresholdedImage;
     ofxCvColorImage         kinectColorImage;
     ofVec2f*                gradientField;

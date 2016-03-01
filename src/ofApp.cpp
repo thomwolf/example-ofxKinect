@@ -17,17 +17,18 @@ void ofApp::setup(){
 	enableCalibration = false;
 	enableTestmode	  = true;
 	enableGame = false;
+	gotROI = 0;
 	
     // contourFinder config
 	chessboardThreshold = 60;
 	lowThresh = 0.2;
 	highThresh = 0.3;
-	contourFinder.setMinAreaRadius(12);
-	contourFinder.setThreshold(3);
-	contourFinder.getTracker().setPersistence(25);
-	contourFinder.getTracker().setMaximumDistance(150);
-	contourFinder.setFindHoles(false);
-	contourFinder.setInvert(false);
+	//	contourFinder.setMinAreaRadius(12);
+	//	contourFinder.setThreshold(3);
+	//	contourFinder.getTracker().setPersistence(25);
+	//	contourFinder.getTracker().setMaximumDistance(150);
+	//	contourFinder.setFindHoles(true);
+	//	contourFinder.setInvert(false);
 	
 	// kinect depth clipping
 	nearclip = 750;
@@ -90,7 +91,8 @@ void ofApp::update(){
 			// find our contours in the label image
 			if (highThresh != 1.0) cvThreshold(thresholdedImage.getCvImage(), thresholdedImage.getCvImage(), highThresh * 255, 255, CV_THRESH_TOZERO_INV);
 			if (lowThresh != 0.0) cvThreshold(thresholdedImage.getCvImage(), thresholdedImage.getCvImage(), lowThresh * 255, 255, CV_THRESH_TOZERO);
-			contourFinder.findContours(thresholdedImage);
+			contourFinder.findContours(thresholdedImage, 12, 640*480, 3, true);
+			(thresholdedImage);
 			
 		}
 		
@@ -115,10 +117,71 @@ void ofApp::update(){
 			//if it is stable, add it.
 			if (stableBoard) {
 				kinectgrabber.kinectProjectorCalibration.addCurrentFrame();
+				
+				// récupe points
+				if (gotROI == 1) { // set kinect to max depth range
+					kinectgrabber.nearclipchannel.send(500);
+					kinectgrabber.farclipchannel.send(4000);
+					gotROI = 2;
+					
+					large = ofPolyline();
+					threshold = 220;
+				} else if (gotROI == 2) {
+					vector<ofVec2f> pointBufFastCheck = kinectgrabber.kinectProjectorCalibration.getFastCheckResults() ;
+					while (threshold < 255){
+						thresholdedImage.setFromPixels(FilteredDepthImage.getPixels());
+						thresholdedImage.mirror(verticalMirror, horizontalMirror);
+						//cvThreshold(thresholdedImage.getCvImage(), thresholdedImage.getCvImage(), highThresh+10, 255, CV_THRESH_TOZERO_INV);
+						cvThreshold(thresholdedImage.getCvImage(), thresholdedImage.getCvImage(), threshold, 255, CV_THRESH_TOZERO);
+						
+						contourFinder.findContours(thresholdedImage, 12, 640*480, 5, true);
+						//contourFinder.findContours(thresholdedImage);
+						//ofPoint cent = ofPoint(projectorWidth/2, projectorHeight/2);
+						
+						ofPolyline small = ofPolyline();
+						for (int i = 0; i < contourFinder.nBlobs; i++) {
+							ofxCvBlob blobContour = contourFinder.blobs[i];
+							if (blobContour.hole) {
+								//								if(!blobContour.isClosed())
+								//									blobContour.close();
+								bool ok = true;
+								ofPolyline poly = ofPolyline(blobContour.pts);//.getResampledByCount(50);
+								for (int j = 0; j < pointBufFastCheck.size(); j++){
+									if (!poly.inside(pointBufFastCheck[j].x, pointBufFastCheck[j].y)) {
+										ok = false;
+										break;
+									}
+								}
+								if (ok) {
+									if (small.size() == 0 || poly.getArea() > small.getArea())
+										small = poly;
+								}
+							}
+						}
+						if (large.getArea() < small.getArea())
+							large = small;
+						threshold+=1;
+					} //else {
+						kinectROI = large.getBoundingBox();
+					if (horizontalMirror) {
+						kinectROI.x = 640 -kinectROI.x;
+						kinectROI.width = -kinectROI.width;
+					}
+					if (verticalMirror) {
+						kinectROI.y = 480 -kinectROI.y;
+						kinectROI.height = -kinectROI.height;
+					}
+					kinectROI.standardize();
+						// We are finished, set back kinect depth range
+						gotROI = 3;
+						kinectgrabber.nearclipchannel.send(nearclip);
+						kinectgrabber.farclipchannel.send(farclip);
+					//}
+				}
 			}
 		}
 	}
-
+	
 	if (enableGame) {
 		if (kinectgrabber.gradient.tryReceive(gradientField)) {
 			for (auto & v : vehicles){
@@ -164,7 +227,13 @@ void ofApp::draw(){
 		
 		// draw our calibration gui
 		ofDrawBitmapString("Thresholded Kinect Input",320+20,20);
-		kinectgrabber.kinectProjectorCalibration.drawChessboardDebug(320+20,40,320,240);
+		thresholdedImage.draw(320+20,40,320,240);
+		ofTranslate(320+20, 40);
+		ofScale(0.5, 0.5);
+		large.draw();
+		ofScale(2.0, 2.0);
+		ofTranslate(-(320+20), -(40));
+//		kinectgrabber.kinectProjectorCalibration.drawChessboardDebug(320+20,40,320,240);
 		//		thresholdedKinect.draw(320+20,40,320,240);
 		
 		ofDrawBitmapString("Processed Input",0,20+240+20+40);
@@ -188,14 +257,21 @@ void ofApp::draw(){
 		ofDrawBitmapString("Grayscale Image",0,20+240+20+40);
 		FilteredDepthImage.draw(0,20+240+40+40,320,240);
 		
-		ofDrawBitmapString("Contours",320+20,20+240+20+40);
+		if (gotROI == 3){
+			ofTranslate(0,20+240+40+40);
+			ofScale(0.5, 0.5);
+			ofDrawRectangle(kinectROI);
+			ofScale(2.0, 2.0);
+			ofTranslate(0, -(20+240+40+40));
+		}
 		
+		ofDrawBitmapString("Contours",320+20,20+240+20+40);
+		thresholdedImage.draw(320+20,20+240+20+40+20,320,240);
 		ofTranslate(320+20, 20+240+20+40+20);
 		ofScale(0.5, 0.5);
 		contourFinder.draw();
 		ofScale(2.0, 2.0);
 		ofTranslate(-(320+20), -(20+240+20+40+20));
-		
 	}
 	ofTranslate(-320,0);
 	ofSetColor(255);
@@ -234,30 +310,30 @@ void ofApp::drawProj(ofEventArgs & args){
 		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
 		shader.end();
 		//		kinectgrabber.framefilter.displayFlowField();
-		ofSetColor(255, 190, 70);
-		ofPoint cent = ofPoint(projectorWidth/2, projectorHeight/2);
-		for (int i = 0; i < contourFinder.size(); i++) {
-			
-			ofPolyline blobContour = contourFinder.getPolyline(i);
-			if(!blobContour.isClosed()){
-				blobContour.close();
-			}
-			
-			//if (!blobContour.inside(cent)) {
-			ofPolyline rect = blobContour.getResampledByCount(8);
-				ofBeginShape();
-			kinectgrabber.lock();
-				for (int j = 0; j < rect.size() - 1; j++) {
-					rect[j].z = (farclip-nearclip)*highThresh+nearclip;
-					ofPoint wrld = kinectgrabber.kinectWrapper->getWorldFromRgbCalibratedXYZ(rect[j], true,true);
-					ofPoint currVertex = kinectgrabber.kinectProjectorOutput.projectFromDepthXYZ(rect[j]);
-					ofVertex(currVertex.x, currVertex.y);
-//					cout << "blob j: "<< j << " rect: "<< rect[j] << " wrld: " << wrld << " currVertex : " << currVertex << endl;
-				}
-			kinectgrabber.unlock();
-				ofEndShape();
-			//}
-		}
+		//		ofSetColor(255, 190, 70);
+		//		ofPoint cent = ofPoint(projectorWidth/2, projectorHeight/2);
+		//		for (int i = 0; i < contourFinder.size(); i++) {
+		//
+		//			ofPolyline blobContour = contourFinder.getPolyline(i);
+		//			if(!blobContour.isClosed()){
+		//				blobContour.close();
+		//			}
+		//
+		//			//if (!blobContour.inside(cent)) {
+		//			ofPolyline rect = blobContour.getResampledByCount(8);
+		//				ofBeginShape();
+		//			kinectgrabber.lock();
+		//				for (int j = 0; j < rect.size() - 1; j++) {
+		//					rect[j].z = (farclip-nearclip)*highThresh+nearclip;
+		//					ofPoint wrld = kinectgrabber.kinectWrapper->getWorldFromRgbCalibratedXYZ(rect[j], true,true);
+		//					ofPoint currVertex = kinectgrabber.kinectProjectorOutput.projectFromDepthXYZ(rect[j]);
+		//					ofVertex(currVertex.x, currVertex.y);
+		////					cout << "blob j: "<< j << " rect: "<< rect[j] << " wrld: " << wrld << " currVertex : " << currVertex << endl;
+		//				}
+		//			kinectgrabber.unlock();
+		//				ofEndShape();
+		//			//}
+		//		}
 		
 	} else if (enableGame) {
 		//1. Drawing into fbo buffer
@@ -494,6 +570,7 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 			enableCalibration = true;
 			enableTestmode = false;
 			enableGame = false;
+			gotROI = 1;
 			kinectgrabber.lock();
 			kinectgrabber.setCalibrationmode();
 			kinectgrabber.unlock();
@@ -513,6 +590,6 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 		kinectgrabber.farclipchannel.send(farclip);
 	} else if (name == "Horizontal mirror" || name == "Vertical mirror") {
 		kinectgrabber.kinectProjectorCalibration.setMirrors(horizontalMirror, verticalMirror);
-		kinectgrabber.kinectProjectorOutput.setMirrors(horizontalMirror, verticalMirror);
+		//		kinectgrabber.kinectProjectorOutput.setMirrors(horizontalMirror, verticalMirror);
 	}
 }

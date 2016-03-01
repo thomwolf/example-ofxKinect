@@ -53,12 +53,14 @@ void KinectGrabber::setupFramefilter(int sNumAveragingSlots, unsigned int newMin
     nearclip =snearclip;
     farclip =sfarclip;
     kinect.setDepthClipping(snearclip, sfarclip);
-    framefilter.setup(kinectWidth, kinectHeight, sNumAveragingSlots, newMinNumSamples, newMaxVariance, newHysteresis, newSpatialFilter, gradFieldresolution, snearclip, sfarclip);
+    framefilter.setup(kinectWidth, kinectHeight, sNumAveragingSlots, newMinNumSamples, newMaxVariance, newHysteresis, newSpatialFilter, gradFieldresolution, snearclip, sfarclip, &kinect);
     // framefilter.startThread();
 }
 
 void KinectGrabber::setupCalibration(int projectorWidth, int projectorHeight, float schessboardSize, float schessboardColor, float sStabilityTimeInMs, float smaxReprojError){
     
+    projWidth = projectorWidth;
+    projHeight = projectorHeight;
     // make the wrapper (to make calibration independant of the drivers...)
     kinectWrapper = new RGBDCamCalibWrapperOfxKinect();
     kinectWrapper->setup(&kinect);
@@ -106,39 +108,66 @@ bool KinectGrabber::isFrameNew(){
 	return newFrame;
 }
 
-
 ofPixels KinectGrabber::convertProjSpace(ofPixels inputframe){
     // Create a new output frame: */
     ofPixels newOutputFrame;
-    newOutputFrame.allocate(kinectWidth, kinectHeight, 1);
+    newOutputFrame.allocate(projWidth, projHeight, 1);
     newOutputFrame.set(0);
     
-    unsigned char* ifPtr=static_cast<unsigned char*>(inputframe.getData());
-    unsigned char* nofPtr=static_cast<unsigned char*>(newOutputFrame.getData());
-    
-    ofPoint v1, v2; // v1.x is 0, v1.y is 0, v1.z is 0
-    int ind;
+//    unsigned char* ifPtr=static_cast<unsigned char*>(inputframe.getData());
+//    unsigned char* nofPtr=static_cast<unsigned char*>(newOutputFrame.getData());
+//    
+//    ofPoint v1, v2; // v1.x is 0, v1.y is 0, v1.z is 0
+//    float z;
+//    int ind, val;
+//    
 //    for(unsigned int y=0;y<kinectHeight;y = y + 1)
 //    {
 //        for(unsigned int x=0;x<kinectWidth;x = x + 1)
 //        {
-//            float z  = (farclip+nearclip)/2;
+//            //float z  = farclip;//+nearclip)/2;
 //            //cout << "iptr: " << (int)ifPtr[y*kinectWidth+x] << endl;
-//            if (ifPtr[y*kinectWidth+x] != 0)
-//                z = (255-ifPtr[y*kinectWidth+x])/255*(farclip-nearclip)+nearclip;
-//            v1.set(x, y, z);// = ofPoint(
-//            v2 = kinectProjectorOutput.projectFromDepthXY(v1);
-//           // cout << "v1: " << v1 << endl;
-//           // cout << "v2: " << v2 << endl;
-//            if (v2.y >= 0 && v2.y < 600 && v2.x >=0 && v2.x < 800) {
-//                ind = (int)floorf(v2.y)*800+(int)floorf(v2.x);
-//                nofPtr[ind]=z;
+//            val = ifPtr[y*kinectWidth+x];
+//            if (val != 0 && val != 255) {
+//                z = (255.0-(float)val)/255.0*(farclip-nearclip)+nearclip;
+//                v1.set(x, y, z);// = ofPoint(
+//                v2 = kinectProjectorOutput.projectFromDepthXYZ(v1);
+////                cout << "v1: " << v1 << endl;
+////                cout << "v2: " << v2 << endl;
+//                if (v2.y >= 0 && v2.y < 600 && v2.x >=0 && v2.x < 800) {
+//                    ind = (int)floorf(v2.y)*800+(int)floorf(v2.x);
+//                    nofPtr[ind]=val;
+//                }
 //            }
 //        }
 //    }
-    newOutputFrame = inputframe;
+        newOutputFrame = inputframe;
     return newOutputFrame;
 }
+
+//ofSetColor(255, 190, 70);
+//ofPoint cent = ofPoint(projectorWidth/2, projectorHeight/2);
+//for (int i = 0; i < contourFinder.size(); i++) {
+//
+//    ofPolyline blobContour = contourFinder.getPolyline(i);
+//    if(!blobContour.isClosed()){
+//        blobContour.close();
+//    }
+//
+//    //if (!blobContour.inside(cent)) {
+//    ofPolyline rect = blobContour.getResampledByCount(8);
+//    ofBeginShape();
+//    kinectgrabber.lock();
+//    for (int j = 0; j < rect.size() - 1; j++) {
+//        rect[j].z = (farclip-nearclip)*highThresh+nearclip;
+//        ofPoint wrld = kinectgrabber.kinectWrapper->getWorldFromRgbCalibratedXYZ(rect[j], true,true);
+//        ofPoint currVertex = kinectgrabber.kinectProjectorOutput.projectFromDepthXYZ(rect[j]);
+//        ofVertex(currVertex.x, currVertex.y);
+//        //					cout << "blob j: "<< j << " rect: "<< rect[j] << " wrld: " << wrld << " currVertex : " << currVertex << endl;
+//    }
+//    kinectgrabber.unlock();
+//    ofEndShape();
+//    //}
 
 void KinectGrabber::threadedFunction(){
     // wait until there's a new frame
@@ -146,6 +175,18 @@ void KinectGrabber::threadedFunction(){
     // the CPU at all, until a frame arrives.
     // also receive doesn't allocate or make any copies
 	while(isThreadRunning()) {
+        
+        //Update clipping planes of kinect if needed
+        float snearclip = nearclip;
+        float sfarclip = farclip;
+        if(nearclipchannel.tryReceive(snearclip) || farclipchannel.tryReceive(sfarclip)) {
+            while(nearclipchannel.tryReceive(snearclip) || farclipchannel.tryReceive(sfarclip)) {
+            } // clear queue
+            kinect.setDepthClipping(snearclip, sfarclip);
+            framefilter.setDepthRange(snearclip, sfarclip);
+            framefilter.resetBuffers();
+        }
+
         newFrame = false;
         if (storedframes == 0)
         {
@@ -178,6 +219,7 @@ void KinectGrabber::threadedFunction(){
                     ofPixels filteredframe, kinectProjImage;
                     filteredframe = framefilter.filter(kinectDepthImage.getPixels());
                     filteredframe.setImageType(OF_IMAGE_GRAYSCALE);
+//                    wrldcoord = framefilter.getWrldcoordbuffer();
                     kinectProjImage = convertProjSpace(filteredframe);
                     kinectProjImage.setImageType(OF_IMAGE_GRAYSCALE);
                     
@@ -194,18 +236,6 @@ void KinectGrabber::threadedFunction(){
                     unlock();
                 }
             }
-        }
-        
-        //Update clipping planes of kinect if needed
-        float snearclip = nearclip;
-        float sfarclip = farclip;
-        if(nearclipchannel.tryReceive(snearclip) || farclipchannel.tryReceive(sfarclip)) {
-            while(nearclipchannel.tryReceive(snearclip) || farclipchannel.tryReceive(sfarclip)) {
-            } // clear queue
-            kinect.setDepthClipping(snearclip, sfarclip);
-            framefilter.setDepthRange(snearclip, sfarclip);
-            framefilter.resetBuffers();
-        
         }
     }
     kinect.close();
