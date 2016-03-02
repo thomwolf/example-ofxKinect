@@ -57,28 +57,6 @@ void KinectGrabber::setupFramefilter(int sNumAveragingSlots, unsigned int newMin
     // framefilter.startThread();
 }
 
-void KinectGrabber::setupCalibration(int projectorWidth, int projectorHeight, float schessboardSize, float schessboardColor, float sStabilityTimeInMs, float smaxReprojError){
-    
-    projWidth = projectorWidth;
-    projHeight = projectorHeight;
-    // make the wrapper (to make calibration independant of the drivers...)
-    kinectWrapper = new RGBDCamCalibWrapperOfxKinect();
-    kinectWrapper->setup(&kinect);
-    kinectProjectorCalibration.setup(kinectWrapper, projectorWidth, projectorHeight);
-    
-    // some default config
-    kinectProjectorCalibration.chessboardSize = schessboardSize;
-    kinectProjectorCalibration.chessboardColor = schessboardColor;
-    kinectProjectorCalibration.setStabilityTimeInMs(sStabilityTimeInMs);
-    kinectProjectorCalibration.setMirrors(true, true);
-    maxReprojError = smaxReprojError;
-    
-    // sets the output
-    kinectProjectorOutput.setup(kinectWrapper, projectorWidth, projectorHeight);
-    kinectProjectorOutput.setMirrors(false, false);//true, true);
-    kinectProjectorOutput.load("kinectProjector.yml");
-}
-
 void KinectGrabber::setupClip(float snearclip, float sfarclip){
     //	// send the frame to the thread for analyzing
     //	// this makes a copy but we can't avoid it anyway if
@@ -95,7 +73,6 @@ void KinectGrabber::setupClip(float snearclip, float sfarclip){
 void KinectGrabber::setTestmode(){
     enableTestmode = true;
     enableCalibration = false;
-    kinectProjectorOutput.load("kinectProjector.yml");
 }
 
 void KinectGrabber::setCalibrationmode(){
@@ -108,42 +85,42 @@ bool KinectGrabber::isFrameNew(){
 	return newFrame;
 }
 
-ofPixels KinectGrabber::convertProjSpace(ofPixels inputframe){
-    // Create a new output frame: */
-    ofPixels newOutputFrame;
-    newOutputFrame.allocate(projWidth, projHeight, 1);
-    newOutputFrame.set(0);
-    
-//    unsigned char* ifPtr=static_cast<unsigned char*>(inputframe.getData());
-//    unsigned char* nofPtr=static_cast<unsigned char*>(newOutputFrame.getData());
+//ofPixels KinectGrabber::convertProjSpace(ofPixels inputframe){
+//    // Create a new output frame: */
+//    ofPixels newOutputFrame;
+//    newOutputFrame.allocate(projWidth, projHeight, 1);
+//    newOutputFrame.set(0);
 //    
-//    ofPoint v1, v2; // v1.x is 0, v1.y is 0, v1.z is 0
-//    float z;
-//    int ind, val;
-//    
-//    for(unsigned int y=0;y<kinectHeight;y = y + 1)
-//    {
-//        for(unsigned int x=0;x<kinectWidth;x = x + 1)
-//        {
-//            //float z  = farclip;//+nearclip)/2;
-//            //cout << "iptr: " << (int)ifPtr[y*kinectWidth+x] << endl;
-//            val = ifPtr[y*kinectWidth+x];
-//            if (val != 0 && val != 255) {
-//                z = (255.0-(float)val)/255.0*(farclip-nearclip)+nearclip;
-//                v1.set(x, y, z);// = ofPoint(
-//                v2 = kinectProjectorOutput.projectFromDepthXYZ(v1);
-////                cout << "v1: " << v1 << endl;
-////                cout << "v2: " << v2 << endl;
-//                if (v2.y >= 0 && v2.y < 600 && v2.x >=0 && v2.x < 800) {
-//                    ind = (int)floorf(v2.y)*800+(int)floorf(v2.x);
-//                    nofPtr[ind]=val;
-//                }
-//            }
-//        }
-//    }
-        newOutputFrame = inputframe;
-    return newOutputFrame;
-}
+////    unsigned char* ifPtr=static_cast<unsigned char*>(inputframe.getData());
+////    unsigned char* nofPtr=static_cast<unsigned char*>(newOutputFrame.getData());
+////    
+////    ofPoint v1, v2; // v1.x is 0, v1.y is 0, v1.z is 0
+////    float z;
+////    int ind, val;
+////    
+////    for(unsigned int y=0;y<kinectHeight;y = y + 1)
+////    {
+////        for(unsigned int x=0;x<kinectWidth;x = x + 1)
+////        {
+////            //float z  = farclip;//+nearclip)/2;
+////            //cout << "iptr: " << (int)ifPtr[y*kinectWidth+x] << endl;
+////            val = ifPtr[y*kinectWidth+x];
+////            if (val != 0 && val != 255) {
+////                z = (255.0-(float)val)/255.0*(farclip-nearclip)+nearclip;
+////                v1.set(x, y, z);// = ofPoint(
+////                v2 = kinectProjectorOutput.projectFromDepthXYZ(v1);
+//////                cout << "v1: " << v1 << endl;
+//////                cout << "v2: " << v2 << endl;
+////                if (v2.y >= 0 && v2.y < 600 && v2.x >=0 && v2.x < 800) {
+////                    ind = (int)floorf(v2.y)*800+(int)floorf(v2.x);
+////                    nofPtr[ind]=val;
+////                }
+////            }
+////        }
+////    }
+//        newOutputFrame = inputframe;
+//    return newOutputFrame;
+//}
 
 //ofSetColor(255, 190, 70);
 //ofPoint cent = ofPoint(projectorWidth/2, projectorHeight/2);
@@ -216,19 +193,19 @@ void KinectGrabber::threadedFunction(){
                 }
                 // if the test mode is activated, the settings are loaded automatically (see gui function)
                 if (enableTestmode) {
-                    ofPixels filteredframe, kinectProjImage;
+                    ofPixels filteredframe;//, kinectProjImage;
                     filteredframe = framefilter.filter(kinectDepthImage.getPixels());
                     filteredframe.setImageType(OF_IMAGE_GRAYSCALE);
 //                    wrldcoord = framefilter.getWrldcoordbuffer();
-                    kinectProjImage = convertProjSpace(filteredframe);
-                    kinectProjImage.setImageType(OF_IMAGE_GRAYSCALE);
+//                    kinectProjImage = convertProjSpace(filteredframe);
+//                    kinectProjImage.setImageType(OF_IMAGE_GRAYSCALE);
                     
                     // If new filtered image => send back to main thread
 #if __cplusplus>=201103
-                    filtered.send(std::move(kinectProjImage));
+                    filtered.send(std::move(filteredframe));
                     gradient.send(std::move(framefilter.getGradField()));
 #else
-                    filtered.send(kinectProjImage);
+                    filtered.send(filteredframe);
                     gradient.send(framefilter.getGradField());
 #endif
                     lock();

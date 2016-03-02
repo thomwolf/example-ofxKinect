@@ -331,7 +331,7 @@ ofPixels FrameFilter::filter(ofPixels inputframe){
                     /* Set the output pixel value to the depth-corrected running mean: */
                     *nofPtr=*ofPtr=newFiltered;
                     // Update world coordonate of point
-                    z = (255.0-newFiltered)/255.0*(farclip-nearclip)+nearclip;
+//                    z = (255.0-newFiltered)/255.0*(farclip-nearclip)+nearclip;
 //                    wrldcoordbuffer[y*width+x]=toCv(backend->getWorldCoordinateAt(x, y, z));
                 }
                 else

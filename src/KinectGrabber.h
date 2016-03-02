@@ -5,10 +5,6 @@
 #include "ofxCv.h"
 #include "ofxKinect.h"
 
-#include "RGBDCamCalibWrapperOfxKinect.h"
-#include "ofxKinectProjectorCalibration.h"
-#include "ofxXmlSettings.h"
-
 #include "FrameFilter.h"
 
 class KinectGrabber: public ofThread {
@@ -22,7 +18,7 @@ public:
     void setCalibrationmode();
     void setTestmode();
     //void update();
-    ofPixels convertProjSpace(ofPixels sinputframe);
+//    ofPixels convertProjSpace(ofPixels sinputframe);
 	bool isFrameNew();
     int storedframes;//, storedcoloredframes;
 	ofPixels & getPixels();
@@ -35,9 +31,6 @@ public:
 	ofThreadChannel<float> farclipchannel;
 
     ofxKinect               kinect;
-    RGBDCamCalibWrapper*	kinectWrapper;
-    KinectProjectorCalibration	kinectProjectorCalibration;
-    KinectProjectorOutput	kinectProjectorOutput;
 //    float                       lowThresh;
 //    float                       highThresh;
     float                       chessboardThreshold;
@@ -54,7 +47,7 @@ private:
     
     // kinect & the wrapper
     float                   nearclip, farclip;
-    int kinectWidth, kinectHeight, projWidth, projHeight;
+    int kinectWidth, kinectHeight;//, projWidth, projHeight;
     ofxCvColorImage         kinectColorImage;
 //    ofxCvGrayscaleImage		kinectGreyscaledImage;
     ofxCvGrayscaleImage     kinectDepthImage;

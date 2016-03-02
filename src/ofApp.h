@@ -6,10 +6,15 @@
 
 #include "ofxUI.h"
 
+#include "RGBDCamCalibWrapperOfxKinect.h"
+#include "ofxKinectProjectorCalibration.h"
+#include "ofxXmlSettings.h"
+
 #include "ColorMap.h"
 #include "FrameFilter.h"
 #include "KinectGrabber.h"
 #include "vehicle.h"
+#include "ofxHomographyHelper.h"
 
 using namespace cv;
 
@@ -39,6 +44,10 @@ public:
     ofxUISuperCanvas *		guiImageSettings;
     ofxUISuperCanvas *		guiMappingSettings;
     
+    void findHomography(ofPoint src[4], ofPoint dst[4], float homography[16]);
+    void gaussian_elimination(float *input, int n);
+        void setNormals( ofMesh &mesh );
+
     void createVehicles();
     void guiEvent(ofxUIEventArgs &e);
     void guiUpdateLabels();
@@ -75,13 +84,21 @@ private:
     ColorMap                    colormap;
     KinectGrabber               kinectgrabber;
 
+    RGBDCamCalibWrapper*	kinectWrapper;
+    KinectProjectorCalibration	kinectProjectorCalibration;
+    KinectProjectorOutput	kinectProjectorOutput;
+
+    ofMesh mesh;
+    int meshwidth;          //Mesh size
+    int meshheight;
+    
     ofxCvContourFinder        contourFinder;
     ofxCvGrayscaleImage     FilteredDepthImage, thresholdedImage;
     ofxCvColorImage         kinectColorImage;
     ofVec2f*                gradientField;
     
     vector<vehicle> vehicles;
-
+    
     ofParameterGroup labels;
     
     // second window
