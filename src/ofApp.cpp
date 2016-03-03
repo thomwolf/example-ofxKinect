@@ -21,8 +21,8 @@ void ofApp::setup(){
 	kinectROI = ofRectangle(0, 0, 640, 480);
 	
 	//Mesh calib
-	meshwidth = 2;
-	meshheight = 2;
+	meshwidth = 2; // 640 should be dividable by meshwidth-1
+	meshheight = 2; // idem with 480
 	
     // contourFinder config
 	chessboardThreshold = 60;
@@ -38,10 +38,10 @@ void ofApp::setup(){
 	// kinect depth clipping
 	nearclip = 750;
 	farclip = 950;
-	int numAveragingSlots=20;
+	int numAveragingSlots=30;
 	unsigned int minNumSamples=10;
 	unsigned int maxVariance=2;
-	float hysteresis=0.1f;
+	float hysteresis=0.5f;
 	bool spatialFilter=false;
 	gradFieldresolution = 20;
     
@@ -75,7 +75,8 @@ void ofApp::setup(){
     // sets the output
     kinectProjectorOutput.setup(kinectWrapper, projectorWidth, projectorHeight);
     kinectProjectorOutput.setMirrors(false, false);//true, true);
-    kinectProjectorOutput.load("kinectProjector.yml");
+    setupView();
+	//kinectProjectorOutput.load("kinectProjector.yml");
 	
 	// Load colormap
     colormap.load("HeightColorMap.yml");
@@ -110,6 +111,17 @@ void ofApp::update(){
 		thresholdedImage.setFromPixels(FilteredDepthImage.getPixels());
 		
 		if (enableTestmode){
+			fbo.begin(); // drawing colormap texture to shader
+			shader.begin();
+			shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
+			shader.setUniform1f("texsize", 255 );
+			shader.setUniform1f("contourLineFactor", contourlinefactor);
+			ofSetColor( 255, 255, 255 );
+			FilteredDepthImage.draw(0, 0);//, projectorWidth, projectorHeight);
+			//fbo.draw( 0, 0 );//,projectorWidth, projectorHeight);
+			//mesh.draw();
+			shader.end();
+			fbo.end();
 			// find our contours in the label image
 			//			if (highThresh != 1.0) cvThreshold(thresholdedImage.getCvImage(), thresholdedImage.getCvImage(), highThresh * 255, 255, CV_THRESH_TOZERO_INV);
 			//			if (lowThresh != 0.0) cvThreshold(thresholdedImage.getCvImage(), thresholdedImage.getCvImage(), lowThresh * 255, 255, CV_THRESH_TOZERO);
@@ -117,33 +129,34 @@ void ofApp::update(){
 			
 			//Create mesh
 			//Set up vertices and colors
-			//			mesh.clear();
-			//			ofPoint wrld;
-			//			int indx, indy;
-			//			float indz;
-			//			for (int y=0; y<meshheight; y++) {
-			//				for (int x=0; x<meshwidth; x++) {
-			//					indx = 640/(meshwidth-1)*x;
-			//					indy = 480/(meshheight-1)*y;
-			//					indz = farclip;//(255.0-filteredframe.getData()[indy*640+indx])/255.0*(farclip-nearclip)+nearclip;
-			//					wrld = kinectgrabber.kinect.getWorldCoordinateAt(indx, indy, indz);
-			//					mesh.addVertex(wrld);
-			//					//mesh.addColor( ofColor( 0, 0, 0 ) );
-			//					mesh.addTexCoord( ofPoint( indx,indy ) );
-			//				}
-			//			}
-			//			//Set up triangles' indices
-			//			for (int y=0; y<meshheight-1; y++) {
-			//				for (int x=0; x<meshwidth-1; x++) {
-			//					int i1 = x + meshwidth * y;
-			//					int i2 = x+1 + meshwidth * y;
-			//					int i3 = x + meshwidth * (y+1);
-			//					int i4 = x+1 + meshwidth * (y+1);
-			//					mesh.addTriangle( i1, i2, i3 );
-			//					mesh.addTriangle( i2, i4, i3 );
-			//				}
-			//			}
-			//			setNormals( mesh );			//Set normals to the surface
+			mesh.clear();
+			
+			ofPoint wrld;
+			int indx, indy;
+			float indz;
+			for (int y=0; y<meshheight; y++) {
+				for (int x=0; x<meshwidth; x++) {
+					indx = 640/(meshwidth-1)*x;
+					indy = 480/(meshheight-1)*y;
+					indz = farclip;//(255.0-filteredframe.getData()[indy*640+indx])/255.0*(farclip-nearclip)+nearclip;
+					wrld = kinectgrabber.kinect.getWorldCoordinateAt(indx, indy, indz);
+					mesh.addVertex(wrld);
+					//mesh.addColor( ofColor( 0, 0, 0 ) );
+					mesh.addTexCoord( ofPoint( indx,indy ) );
+				}
+			}
+			//Set up triangles' indices
+			for (int y=0; y<meshheight-1; y++) {
+				for (int x=0; x<meshwidth-1; x++) {
+					int i1 = x + meshwidth * y;
+					int i2 = x+1 + meshwidth * y;
+					int i3 = x + meshwidth * (y+1);
+					int i4 = x+1 + meshwidth * (y+1);
+					mesh.addTriangle( i1, i2, i3 );
+					mesh.addTriangle( i2, i4, i3 );
+				}
+			}
+			setNormals( mesh );			//Set normals to the surface
 		}
 	}
 	
@@ -341,44 +354,19 @@ void ofApp::drawProj(ofEventArgs & args){
 		fbo.end();			//End drawing into buffer
 		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
 	} else if (enableTestmode) {
-		ofPoint des[4];
-		ofPoint src[]={kinectROI.getTopLeft(), kinectROI.getTopRight(), kinectROI.getBottomRight(),kinectROI.getBottomLeft()};
-		for (int i = 0; i <4; i++){
-			src[i].z = farclip;
-			des[i] = kinectProjectorOutput.projectFromDepthXYZ(src[i]);
-		}
-			//ofPoint(0,0),ofPoint(image.width,0),ofPoint(image.width,image.height),ofPoint(0,image.height)};
-			GLfloat matrix[16];
-			findHomography(src,des,matrix);
-			
-			//1. Drawing into fbo buffer
-			fbo.begin();		//Start drawing grayscale depth image into buffer
-			ofClear(0);
-			ofSetColor(255, 170, 170);
-			FilteredDepthImage.ofBaseDraws::draw(0, 0, projectorWidth, projectorHeight);
-			fbo.end();			//End drawing into buffer
-			
-		glPushMatrix();
-		glMultMatrixf(matrix);
-		glPushMatrix();
-			//		fbo.draw( 0, 0 );
-			//2. Drawing to screen through the shader
-			//		kinectProjectorOutput.loadCalibratedView();
-			shader.begin();
-			shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
-			shader.setUniform1f("texsize", 255 );
-			shader.setUniform1f("contourLineFactor", contourlinefactor);
-			ofSetColor( 255, 255, 255 );
-		fbo.draw( 0, 0 );//,projectorWidth, projectorHeight);
-			mesh.draw();
-			shader.end();
-			
-		glPopMatrix();
-		glPopMatrix();
-		//		ofSetColor( 255, 0, 0 );		//Set color
-			//		fbo.getTexture().bind();
-			//		fbo.getTexture().unbind();
-			//		kinectProjectorOutput.unloadCalibratedView();
+					
+//		glPushMatrix();
+//		glMultMatrixf(matrix);
+//		glPushMatrix();
+//		fbo.draw(0, 0);
+//		glPopMatrix();
+//		glPopMatrix();
+		
+		kinectProjectorOutput.loadCalibratedView();
+		fbo.getTexture().bind();
+		mesh.draw();
+		fbo.getTexture().unbind();
+		kinectProjectorOutput.unloadCalibratedView();
 			
 			//		kinectgrabber.framefilter.displayFlowField();
 			//		ofSetColor(255, 190, 70);
@@ -498,7 +486,22 @@ void ofApp::drawProj(ofEventArgs & args){
 		}
 	}
 	
-	//--------------------------------------------------------------
+//--------------------------------------------------------------
+	void ofApp::setupView() {
+		kinectProjectorOutput.load("kinectProjector.yml");
+ofPoint des[4];
+ofPoint src[]={kinectROI.getTopLeft(), kinectROI.getTopRight(), kinectROI.getBottomRight(),kinectROI.getBottomLeft()};
+for (int i = 0; i <4; i++){
+	src[i].z = farclip;
+	des[i] = kinectProjectorOutput.projectFromDepthXYZ(src[i]);
+}
+//ofPoint(0,0),ofPoint(image.width,0),ofPoint(image.width,image.height),ofPoint(0,image.height)};
+
+findHomography(src,des,matrix);
+	}
+
+
+//--------------------------------------------------------------
 	void ofApp::setupGui() {
 		
 		float dim = 16;
@@ -631,8 +634,7 @@ void ofApp::drawProj(ofEventArgs & args){
 				kinectgrabber.lock();
 				kinectgrabber.setTestmode();
 				kinectgrabber.unlock();
-				
-				kinectProjectorOutput.load("kinectProjector.yml");
+				setupView();
 				guiImageSettings->setVisible(false);
 				guiMappingSettings->setVisible(true);
 				//			gui->setVisible(true);

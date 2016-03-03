@@ -27,6 +27,7 @@ public:
     void draw();
     void drawProj(ofEventArgs & args);
     void exit();
+    void setupView();
     
     void keyPressed(int key);
     void keyReleased(int key);
@@ -91,6 +92,8 @@ private:
     ofMesh mesh;
     int meshwidth;          //Mesh size
     int meshheight;
+    
+    GLfloat matrix[16];
     
     ofxCvContourFinder        contourFinder;
     ofxCvGrayscaleImage     FilteredDepthImage, thresholdedImage;
