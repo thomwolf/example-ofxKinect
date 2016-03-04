@@ -38,7 +38,7 @@ void KinectGrabber::setup(){
     //    storedcoloredframes = 0;
     
     kinect.init();
-    kinect.setRegistration(true);
+    kinect.setRegistration(true); // So we have correspondance between RGB and depth images
     kinect.open();
     kinect.setUseTexture(false);
     kinectWidth = kinect.getWidth();

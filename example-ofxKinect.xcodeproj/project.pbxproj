@@ -66,8 +66,8 @@
 		B712B9FD1C6E3D0E00D3C52F /* ofxSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B712B9F21C6E3D0E00D3C52F /* ofxSlider.cpp */; };
 		B712B9FE1C6E3D0E00D3C52F /* ofxSliderGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B712B9F41C6E3D0E00D3C52F /* ofxSliderGroup.cpp */; };
 		B712B9FF1C6E3D0E00D3C52F /* ofxToggle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B712B9F61C6E3D0E00D3C52F /* ofxToggle.cpp */; };
-		B718468F1C73B86A00AAEA3D /* ColorMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B718468D1C73B86A00AAEA3D /* ColorMap.cpp */; };
 		B742D8461C79B06D0084B39F /* KinectGrabber.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B742D8441C79B06D0084B39F /* KinectGrabber.cpp */; };
+		B77DB8A51C88D8E4008D63C6 /* SurfaceRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B77DB8A31C88D8E4008D63C6 /* SurfaceRenderer.cpp */; };
 		B79D691F1C7C6C5A0079205E /* vehicle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B79D691D1C7C6C5A0079205E /* vehicle.cpp */; };
 		B7F55E991C78A81200380590 /* FrameFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B724FB2C1C765F46004C21CC /* FrameFilter.cpp */; };
 		B906C0D0B435A2FBCFBB7AE1 /* KinectProjectorOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4850F8CA4F961A3CFA83D7E /* KinectProjectorOutput.cpp */; };
@@ -346,12 +346,18 @@
 		B712B9F51C6E3D0E00D3C52F /* ofxSliderGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxSliderGroup.h; sourceTree = "<group>"; };
 		B712B9F61C6E3D0E00D3C52F /* ofxToggle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxToggle.cpp; sourceTree = "<group>"; };
 		B712B9F71C6E3D0E00D3C52F /* ofxToggle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxToggle.h; sourceTree = "<group>"; };
-		B718468D1C73B86A00AAEA3D /* ColorMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ColorMap.cpp; path = src/ColorMap.cpp; sourceTree = "<group>"; };
 		B718468E1C73B86A00AAEA3D /* ColorMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorMap.h; sourceTree = "<group>"; };
 		B724FB2C1C765F46004C21CC /* FrameFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FrameFilter.cpp; sourceTree = "<group>"; };
 		B724FB2D1C765F46004C21CC /* FrameFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FrameFilter.h; sourceTree = "<group>"; };
 		B742D8441C79B06D0084B39F /* KinectGrabber.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KinectGrabber.cpp; sourceTree = "<group>"; };
 		B742D8451C79B06D0084B39F /* KinectGrabber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KinectGrabber.h; sourceTree = "<group>"; };
+		B77DB8A31C88D8E4008D63C6 /* SurfaceRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SurfaceRenderer.cpp; sourceTree = "<group>"; };
+		B77DB8A41C88D8E4008D63C6 /* SurfaceRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SurfaceRenderer.h; sourceTree = "<group>"; };
+		B77DB8A61C88E154008D63C6 /* heightMapShader.fs */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = heightMapShader.fs; path = bin/data/heightMapShader.fs; sourceTree = SOURCE_ROOT; };
+		B77DB8A81C88E4D5008D63C6 /* heightMapShader.vs */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; name = heightMapShader.vs; path = bin/data/heightMapShader.vs; sourceTree = SOURCE_ROOT; };
+		B77DB8AA1C88EB91008D63C6 /* Sandbox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Sandbox.cpp; sourceTree = "<group>"; };
+		B77DB8AF1C89014A008D63C6 /* SurfaceElevationShader.fs */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; name = SurfaceElevationShader.fs; path = bin/data/SurfaceElevationShader.fs; sourceTree = SOURCE_ROOT; };
+		B77DB8B01C89014A008D63C6 /* SurfaceElevationShader.vs */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; name = SurfaceElevationShader.vs; path = bin/data/SurfaceElevationShader.vs; sourceTree = SOURCE_ROOT; };
 		B79D691D1C7C6C5A0079205E /* vehicle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vehicle.cpp; sourceTree = "<group>"; };
 		B79D691E1C7C6C5A0079205E /* vehicle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vehicle.h; sourceTree = "<group>"; };
 		B7BF51E8E757FF8A162D3662 /* lsh_index.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = lsh_index.h; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/flann/lsh_index.h; sourceTree = SOURCE_ROOT; };
@@ -830,7 +836,6 @@
 		9683228C705CA3FF4F2EA945 /* ofxKinect */ = {
 			isa = PBXGroup;
 			children = (
-				B718468D1C73B86A00AAEA3D /* ColorMap.cpp */,
 				F3D2DB7201EFA9F7958F421E /* src */,
 				F4101FC676C210E28DCB3220 /* libs */,
 			);
@@ -1187,12 +1192,19 @@
 				B742D8451C79B06D0084B39F /* KinectGrabber.h */,
 				B724FB2C1C765F46004C21CC /* FrameFilter.cpp */,
 				B724FB2D1C765F46004C21CC /* FrameFilter.h */,
-				B7E0B5701C75E6E3002DE865 /* shaderFrag.c */,
-				B7E0B5711C75E6E3002DE865 /* shaderVert.c */,
+				B77DB8A31C88D8E4008D63C6 /* SurfaceRenderer.cpp */,
+				B77DB8A41C88D8E4008D63C6 /* SurfaceRenderer.h */,
 				B718468E1C73B86A00AAEA3D /* ColorMap.h */,
 				E4B69E1D0A3A1BDC003C02F2 /* main.cpp */,
 				E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */,
 				E4B69E1F0A3A1BDC003C02F2 /* ofApp.h */,
+				B77DB8AA1C88EB91008D63C6 /* Sandbox.cpp */,
+				B7E0B5701C75E6E3002DE865 /* shaderFrag.c */,
+				B7E0B5711C75E6E3002DE865 /* shaderVert.c */,
+				B77DB8AF1C89014A008D63C6 /* SurfaceElevationShader.fs */,
+				B77DB8B01C89014A008D63C6 /* SurfaceElevationShader.vs */,
+				B77DB8A81C88E4D5008D63C6 /* heightMapShader.vs */,
+				B77DB8A61C88E154008D63C6 /* heightMapShader.fs */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;
@@ -1360,6 +1372,7 @@
 				E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */,
 				7ADB04AF67C568EAFAEBA546 /* ofxKinectExtras.cpp in Sources */,
 				686B0DF6249B52E1A85B39EC /* ofxKinect.cpp in Sources */,
+				B77DB8A51C88D8E4008D63C6 /* SurfaceRenderer.cpp in Sources */,
 				0F8F016776681D468C0D0949 /* audio.c in Sources */,
 				B712B9FF1C6E3D0E00D3C52F /* ofxToggle.cpp in Sources */,
 				ACE7DC9A3223ED5EE1B80074 /* cameras.c in Sources */,
@@ -1383,7 +1396,6 @@
 				63B57AC5BF4EF088491E0317 /* ofxXmlSettings.cpp in Sources */,
 				933A2227713C720CEFF80FD9 /* tinyxml.cpp in Sources */,
 				9D44DC88EF9E7991B4A09951 /* tinyxmlerror.cpp in Sources */,
-				B718468F1C73B86A00AAEA3D /* ColorMap.cpp in Sources */,
 				5A4349E9754D6FA14C0F2A3A /* tinyxmlparser.cpp in Sources */,
 				B6840996567E78436F7ECFAB /* ETF.cpp in Sources */,
 				F76B4A79BD8DE4854141CB47 /* fdog.cpp in Sources */,
@@ -1539,6 +1551,7 @@
 					../../../addons/ofxSecondWindow/src,
 					../../../addons/ofxUI/libs,
 					../../../addons/ofxUI/src,
+					../Vrui,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CPLUSPLUSFLAGS = (
@@ -1630,6 +1643,7 @@
 					../../../addons/ofxSecondWindow/src,
 					../../../addons/ofxUI/libs,
 					../../../addons/ofxUI/src,
+					../Vrui,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CPLUSPLUSFLAGS = (
