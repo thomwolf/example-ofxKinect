@@ -10,10 +10,17 @@
 #include "ofxKinectProjectorCalibration.h"
 #include "ofxXmlSettings.h"
 
+#include <Geometry/HVector.h>
+#include <Geometry/Plane.h>
+#include <Geometry/Point.h>
+#include <Geometry/Matrix.h>
+#include <Geometry/ProjectiveTransformation.h>
+
 #include "ColorMap.h"
 #include "FrameFilter.h"
 #include "KinectGrabber.h"
 #include "vehicle.h"
+#include "SurfaceRenderer.h"
 #include "ofxHomographyHelper.h"
 
 using namespace cv;
@@ -21,6 +28,11 @@ using namespace cv;
 class ofApp : public ofBaseApp{
     
 public:
+	typedef Geometry::Point<double,3> Point;
+	typedef Geometry::Vector<double,3> Vector;
+	typedef Geometry::Plane<double,3> Plane;
+	typedef Geometry::ProjectiveTransformation<double,3> PTransform;
+    
     void setup();
     //   void setupGui();
     void update();
@@ -68,10 +80,14 @@ private:
     
     // UI conf values
     float                   nearclip, farclip;
+    ofMatrix4x4             projMatrix;
     float   chessboardSize, chessboardColor,chessboardThreshold, maxReprojError, StabilityTimeInMs;
 	int mindepth;
 	int maxdepth;
     
+	PTransform depthProjection; // The transformation from depth image space to camera space
+	Plane basePlane; // Base plane to calculate surface elevation
+
     int threshold;
     ofPolyline large;
     
@@ -82,8 +98,9 @@ private:
 
     ofShader                    shader;            //Shader
     ofFbo                       fbo;			//Buffer for intermediate drawing
-    ColorMap                    colormap;
+    ColorMap                    heightMap;
     KinectGrabber               kinectgrabber;
+    SurfaceRenderer*             surfaceRenderer;
 
     RGBDCamCalibWrapper*	kinectWrapper;
     KinectProjectorCalibration	kinectProjectorCalibration;

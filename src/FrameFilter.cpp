@@ -8,6 +8,11 @@
 #include "FrameFilter.h"
 #include "ofConstants.h"
 
+#include <Geometry/HVector.h>
+#include <Geometry/Plane.h>
+#include <Geometry/Matrix.h>
+#include <Geometry/ProjectiveTransformation.h>
+
 /****************************
  Methods of class FrameFilter:
  ****************************/
@@ -16,23 +21,26 @@ FrameFilter::FrameFilter(): newFrame(true), bufferInitiated(false)
 {
 }
 
-bool FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int sgradFieldresolution, float snearclip, float sfarclip, void* _backend)
+bool FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, int sgradFieldresolution, float snearclip, float sfarclip, const FrameFilter::PTransform& depthProjection,const FrameFilter::Plane& basePlane)
 {
 	/* Settings variables : */
 	width = swidth;
     height = sheight;
     gradFieldresolution = sgradFieldresolution;
 	
-	/* Initialize the valid depth range: */
-	setValidDepthInterval(1,254);
+	/* Initialize the input frame slot: */
+	inputFrameVersion=0;
 	
+	/* Initialize the valid depth range: */
+	setValidDepthInterval(0U,2046U);
+		
 	/* Initialize the averaging buffer: */
 	numAveragingSlots=sNumAveragingSlots;
     
 	/* Initialize the stability criterion: */
-    //	minNumSamples=(numAveragingSlots+1)/2;
-    //	maxVariance=4;
-    //	hysteresis=0.1f;
+    minNumSamples=(numAveragingSlots+1)/2;
+    	maxVariance=4;
+    	hysteresis=0.1f;
 	retainValids=true;
 	instableValue=0.0;
     maxgradfield = 1000;
@@ -41,14 +49,20 @@ bool FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int
     farclip = sfarclip;
     depthrange = sfarclip-snearclip;
     
-    minNumSamples=newMinNumSamples;
-    maxVariance=newMaxVariance;
-    hysteresis=newHysteresis;
+//    minNumSamples=(numAveragingSlots+1)/2;
+//    maxVariance=newMaxVariance;
+//    hysteresis=newHysteresis;
 	
 	/* Enable spatial filtering: */
     //	spatialFilter=true;
-    spatialFilter=newSpatialFilter;
+    spatialFilter=true;
     
+	/* Convert the base plane equation from camera space to depth-image space: */
+	PTransform::HVector basePlaneCc(basePlane.getNormal());
+	basePlaneCc[3]=-basePlane.getOffset();
+	PTransform::HVector basePlaneDic(depthProjection.getMatrix().transposeMultiply(basePlaneCc));
+	basePlaneDic/=Geometry::mag(basePlaneDic.toVector());
+	
 	/* Initialize the gradient field vector*/
     gradFieldresolution = sgradFieldresolution;
     std::cout<< "Gradient Field resolution" << gradFieldresolution <<std::endl;
@@ -56,14 +70,6 @@ bool FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int
     std::cout<< "Width: " << width << " Cols: " << gradFieldcols <<std::endl;
     gradFieldrows = height / sgradFieldresolution;
     std::cout<< "Height: " << height << " Rows: " << gradFieldrows <<std::endl;
-    
-    // cast the kinect backend
-    backend = static_cast <ofxKinect *>(_backend);
-    // check if the backend is connected & capturing calibrated video
-    if(!backend->isConnected()){
-        ofLog(OF_LOG_ERROR, "Please open the kinect prior to setting the Framefilter");
-        return;
-    }
     
     //setting buffers
 	initiateBuffers();
@@ -107,7 +113,7 @@ void FrameFilter::initiateBuffers(void){
     for(int i=0;i<numAveragingSlots;++i)
         for(unsigned int y=0;y<height;++y)
             for(unsigned int x=0;x<width;++x,++abPtr)
-                *abPtr=255; // Mark sample as invalid
+                *abPtr=2048U; // Mark sample as invalid
     averagingSlotIndex=0;
     
     /* Initialize the statistics buffer: */
@@ -230,7 +236,7 @@ void FrameFilter::drawArrow(ofVec2f v1)
     //ofDrawLine(-length/2 + length*0.8, length*-0.1, length/2, 0);
 }
 
-ofPixels FrameFilter::filter(ofPixels inputframe){
+ofShortPixels FrameFilter::filter(ofShortPixels inputframe){
     // wait until there's a new frame
     // this blocks the thread, so it doesn't use
     // the CPU at all, until a frame arrives.
@@ -250,7 +256,7 @@ ofPixels FrameFilter::filter(ofPixels inputframe){
     //    ofPixels inputframe = convertProjSpace(sinputframe);
     
     // Create a new output frame: */
-    ofPixels newOutputFrame;
+    ofShortPixels newOutputFrame;
     newOutputFrame.allocate(width, height, 1);
     
     /* Initialize a new gradient field buffer and number of valid gradient measures */
@@ -275,21 +281,22 @@ ofPixels FrameFilter::filter(ofPixels inputframe){
     
     for(unsigned int y=0;y<height;++y)
     {
-        //            float py=float(y)+0.5f;
+                    float py=float(y)+0.5f;
         for(unsigned int x=0;x<width;++x,++ifPtr,++abPtr,sPtr+=3,++ofPtr,++nofPtr)
         {
-            //                float px=float(x)+0.5f;
+                            float px=float(x)+0.5f;
             
-            unsigned char oldVal=*abPtr;
-            unsigned char newVal=*ifPtr;
+            unsigned int oldVal=*abPtr;
+            unsigned int newVal=*ifPtr;
             
-            //                    /* Depth-correct the new value: */
-            //                    float newCVal=pdcPtr->correct(newVal);
-            //
-            //                    /* Plug the depth-corrected new value into the minimum and maximum plane equations to determine its validity: */
-            //                    float minD=minPlane[0]*px+minPlane[1]*py+minPlane[2]*newCVal+minPlane[3];
-            //                    float maxD=maxPlane[0]*px+maxPlane[1]*py+maxPlane[2]*newCVal+maxPlane[3];
-            if(newVal != 0 && newVal != 255) // Pixel depth not clipped => inside valide range
+                    /* Depth-correct the new value: */
+            float newCVal=newVal; //pdcPtr->correct(newVal); No per pîxel correction
+
+            /* Plug the depth-corrected new value into the minimum and maximum plane equations to determine its validity: */
+            float minD=minPlane[0]*px+minPlane[1]*py+minPlane[2]*newCVal+minPlane[3];
+            float maxD=maxPlane[0]*px+maxPlane[1]*py+maxPlane[2]*newCVal+maxPlane[3];
+            if(minD>=0.0f&&maxD<=0.0f)
+ //           if(newVal != 0 && newVal != 255) // Pixel depth not clipped => inside valide range
             {
                 /* Store the new input value: */
                 *abPtr=newVal;
@@ -300,7 +307,7 @@ ofPixels FrameFilter::filter(ofPixels inputframe){
                 sPtr[2]+=newVal*newVal; // Sum of squares of valid samples
                 
                 /* Check if the previous value in the averaging buffer was valid: */
-                if(oldVal!=255)
+                if(oldVal!=2048U)
                 {
                     --sPtr[0]; // Number of valid samples
                     sPtr[1]-=oldVal; // Sum of valid samples
@@ -310,10 +317,10 @@ ofPixels FrameFilter::filter(ofPixels inputframe){
             else if(!retainValids)
             {
                 /* Store an invalid input value: */
-                *abPtr=255;
+                *abPtr=2048U;
                 
                 /* Check if the previous value in the averaging buffer was valid: */
-                if(oldVal!=255)
+                if(oldVal!=2048U)
                 {
                     --sPtr[0]; // Number of valid samples
                     sPtr[1]-=oldVal; // Sum of valid samples
@@ -481,17 +488,34 @@ void FrameFilter::updateGradientField()
 
 void FrameFilter::setValidDepthInterval(unsigned int newMinDepth,unsigned int newMaxDepth)
 {
-    /* Set the equations for the minimum and maximum plane in depth image space: */
-    //	minPlane[0]=0.0f;
-    //	minPlane[1]=0.0f;
-    //	minPlane[2]=1.0f;
-    //	minPlane[3]=-float(newMinDepth)+0.5f;
-    //	maxPlane[0]=0.0f;
-    //	maxPlane[1]=0.0f;
-    //	maxPlane[2]=1.0f;
-    //	maxPlane[3]=-float(newMaxDepth)-0.5f;
-    min=newMinDepth;
-    max=newMaxDepth;
+	/* Set the equations for the minimum and maximum plane in depth image space: */
+	minPlane[0]=0.0f;
+	minPlane[1]=0.0f;
+	minPlane[2]=1.0f;
+	minPlane[3]=-float(newMinDepth)+0.5f;
+	maxPlane[0]=0.0f;
+	maxPlane[1]=0.0f;
+	maxPlane[2]=1.0f;
+	maxPlane[3]=-float(newMaxDepth)-0.5f;
+}
+
+void FrameFilter::setValidElevationInterval(const FrameFilter::PTransform& depthProjection,const FrameFilter::Plane& basePlane,double newMinElevation,double newMaxElevation)
+{
+	/* Calculate the equations of the minimum and maximum elevation planes in camera space: */
+	PTransform::HVector minPlaneCc(basePlane.getNormal());
+	minPlaneCc[3]=-(basePlane.getOffset()+newMinElevation*basePlane.getNormal().mag());
+	PTransform::HVector maxPlaneCc(basePlane.getNormal());
+	maxPlaneCc[3]=-(basePlane.getOffset()+newMaxElevation*basePlane.getNormal().mag());
+	
+	/* Transform the plane equations to depth image space and flip and swap the min and max planes because elevation increases opposite to raw depth: */
+	PTransform::HVector minPlaneDic(depthProjection.getMatrix().transposeMultiply(minPlaneCc));
+	double minPlaneScale=-1.0/Geometry::mag(minPlaneDic.toVector());
+	for(int i=0;i<4;++i)
+		maxPlane[i]=float(minPlaneDic[i]*minPlaneScale);
+	PTransform::HVector maxPlaneDic(depthProjection.getMatrix().transposeMultiply(maxPlaneCc));
+	double maxPlaneScale=-1.0/Geometry::mag(maxPlaneDic.toVector());
+	for(int i=0;i<4;++i)
+		minPlane[i]=float(maxPlaneDic[i]*maxPlaneScale);
 }
 
 void FrameFilter::setStableParameters(unsigned int newMinNumSamples,unsigned int newMaxVariance)

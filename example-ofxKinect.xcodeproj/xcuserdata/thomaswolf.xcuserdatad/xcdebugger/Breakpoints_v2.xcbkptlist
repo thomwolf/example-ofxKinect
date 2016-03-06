@@ -128,12 +128,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/FrameFilter.cpp"
-            timestampString = "477699018.623739"
+            timestampString = "478913745.111164"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "20"
-            endingLineNumber = "20"
-            landmarkName = "FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int sgradFieldresolution, float snearclip, float sfarclip, void* _backend)"
+            startingLineNumber = "25"
+            endingLineNumber = "25"
+            landmarkName = "FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int sNumAveragingSlots, int sgradFieldresolution, float snearclip, float sfarclip, const FrameFilter::PTransform&amp; depthProjection,const FrameFilter::Plane&amp; basePlane)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -144,12 +144,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/FrameFilter.cpp"
-            timestampString = "478476119.292601"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "357"
-            endingLineNumber = "357"
-            landmarkName = "FrameFilter::filter(ofPixels inputframe)"
+            startingLineNumber = "364"
+            endingLineNumber = "364"
+            landmarkName = "FrameFilter::filter(ofShortPixels inputframe)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -160,12 +160,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/FrameFilter.cpp"
-            timestampString = "478476119.292601"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "427"
-            endingLineNumber = "427"
-            landmarkName = "FrameFilter::filter(ofPixels inputframe)"
+            startingLineNumber = "434"
+            endingLineNumber = "434"
+            landmarkName = "FrameFilter::filter(ofShortPixels inputframe)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -176,12 +176,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/FrameFilter.cpp"
-            timestampString = "478476119.292601"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "276"
-            endingLineNumber = "276"
-            landmarkName = "FrameFilter::filter(ofPixels inputframe)"
+            startingLineNumber = "282"
+            endingLineNumber = "282"
+            landmarkName = "FrameFilter::filter(ofShortPixels inputframe)"
             landmarkType = "5">
             <Locations>
                <Location
@@ -222,12 +222,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/FrameFilter.cpp"
-            timestampString = "478476119.292601"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "294"
-            endingLineNumber = "294"
-            landmarkName = "FrameFilter::filter(ofPixels inputframe)"
+            startingLineNumber = "301"
+            endingLineNumber = "301"
+            landmarkName = "FrameFilter::filter(ofShortPixels inputframe)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -238,12 +238,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/FrameFilter.cpp"
-            timestampString = "478476119.292601"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "327"
-            endingLineNumber = "327"
-            landmarkName = "FrameFilter::filter(ofPixels inputframe)"
+            startingLineNumber = "334"
+            endingLineNumber = "334"
+            landmarkName = "FrameFilter::filter(ofShortPixels inputframe)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -254,12 +254,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/FrameFilter.cpp"
-            timestampString = "478476119.292601"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "328"
-            endingLineNumber = "328"
-            landmarkName = "FrameFilter::filter(ofPixels inputframe)"
+            startingLineNumber = "335"
+            endingLineNumber = "335"
+            landmarkName = "FrameFilter::filter(ofShortPixels inputframe)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -270,11 +270,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ofApp.cpp"
-            timestampString = "478649958.989547"
+            timestampString = "478923636.891613"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "108"
-            endingLineNumber = "108"
+            startingLineNumber = "120"
+            endingLineNumber = "120"
             landmarkName = "ofApp::update()"
             landmarkType = "5">
          </BreakpointContent>
@@ -285,26 +285,12 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "src/FrameFilter.h"
-            timestampString = "478476119.292601"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "14"
-            endingLineNumber = "14">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
             filePath = "src/KinectGrabber.cpp"
-            timestampString = "478643905.138497"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "164"
-            endingLineNumber = "164"
+            startingLineNumber = "210"
+            endingLineNumber = "210"
             landmarkName = "KinectGrabber::threadedFunction()"
             landmarkType = "5">
          </BreakpointContent>
@@ -316,11 +302,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/KinectGrabber.cpp"
-            timestampString = "478643905.138497"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "167"
-            endingLineNumber = "167"
+            startingLineNumber = "213"
+            endingLineNumber = "213"
             landmarkName = "KinectGrabber::threadedFunction()"
             landmarkType = "5">
          </BreakpointContent>
@@ -332,11 +318,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/KinectGrabber.cpp"
-            timestampString = "478643905.138497"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "174"
-            endingLineNumber = "174"
+            startingLineNumber = "220"
+            endingLineNumber = "220"
             landmarkName = "KinectGrabber::threadedFunction()"
             landmarkType = "5">
          </BreakpointContent>
@@ -348,11 +334,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ofApp.cpp"
-            timestampString = "478696668.722609"
+            timestampString = "478923636.891613"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "412"
-            endingLineNumber = "412"
+            startingLineNumber = "425"
+            endingLineNumber = "425"
             landmarkName = "ofApp::drawProj(ofEventArgs &amp; args)"
             landmarkType = "5">
             <Locations>
@@ -460,11 +446,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/FrameFilter.cpp"
-            timestampString = "478476119.292601"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "472"
-            endingLineNumber = "472"
+            startingLineNumber = "479"
+            endingLineNumber = "479"
             landmarkName = "FrameFilter::updateGradientField()"
             landmarkType = "5">
          </BreakpointContent>
@@ -476,11 +462,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/FrameFilter.cpp"
-            timestampString = "478476119.292601"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "449"
-            endingLineNumber = "449"
+            startingLineNumber = "456"
+            endingLineNumber = "456"
             landmarkName = "FrameFilter::updateGradientField()"
             landmarkType = "5">
          </BreakpointContent>
@@ -492,11 +478,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/FrameFilter.cpp"
-            timestampString = "478476119.292601"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "453"
-            endingLineNumber = "453"
+            startingLineNumber = "460"
+            endingLineNumber = "460"
             landmarkName = "FrameFilter::updateGradientField()"
             landmarkType = "5">
          </BreakpointContent>
@@ -508,7 +494,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../../../addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
-            timestampString = "478476119.292601"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "361"
@@ -568,7 +554,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../../../addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
-            timestampString = "478476119.292601"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "364"
@@ -628,7 +614,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../../../addons/ofxProjectorKinectCalibration/src/KinectProjectorCalibration.cpp"
-            timestampString = "478476119.292601"
+            timestampString = "478922333.472562"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "362"
@@ -684,11 +670,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ofApp.cpp"
-            timestampString = "478696668.722609"
+            timestampString = "478923636.891613"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "192"
-            endingLineNumber = "192"
+            startingLineNumber = "204"
+            endingLineNumber = "204"
             landmarkName = "ofApp::update()"
             landmarkType = "5">
          </BreakpointContent>
@@ -700,11 +686,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ofApp.cpp"
-            timestampString = "478696668.722609"
+            timestampString = "478923636.891613"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "217"
-            endingLineNumber = "217"
+            startingLineNumber = "229"
+            endingLineNumber = "229"
             landmarkName = "ofApp::update()"
             landmarkType = "5">
          </BreakpointContent>
@@ -716,11 +702,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ofApp.cpp"
-            timestampString = "478696668.722609"
+            timestampString = "478923636.891613"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "185"
-            endingLineNumber = "185"
+            startingLineNumber = "197"
+            endingLineNumber = "197"
             landmarkName = "ofApp::update()"
             landmarkType = "5">
          </BreakpointContent>
@@ -732,11 +718,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ofApp.cpp"
-            timestampString = "478696668.722609"
+            timestampString = "478923636.891613"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "325"
-            endingLineNumber = "325"
+            startingLineNumber = "337"
+            endingLineNumber = "337"
             landmarkName = "ofApp::draw()"
             landmarkType = "5">
          </BreakpointContent>
@@ -748,11 +734,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ofApp.cpp"
-            timestampString = "478696668.722609"
+            timestampString = "478923636.891613"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "224"
-            endingLineNumber = "224"
+            startingLineNumber = "236"
+            endingLineNumber = "236"
             landmarkName = "ofApp::update()"
             landmarkType = "5">
          </BreakpointContent>
@@ -764,11 +750,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ofApp.cpp"
-            timestampString = "478696668.722609"
+            timestampString = "478923636.891613"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "219"
-            endingLineNumber = "219"
+            startingLineNumber = "231"
+            endingLineNumber = "231"
             landmarkName = "ofApp::update()"
             landmarkType = "5">
          </BreakpointContent>
@@ -780,11 +766,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ofApp.cpp"
-            timestampString = "478696668.722609"
+            timestampString = "478923636.891613"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "228"
-            endingLineNumber = "228"
+            startingLineNumber = "240"
+            endingLineNumber = "240"
             landmarkName = "ofApp::update()"
             landmarkType = "5">
          </BreakpointContent>
@@ -796,11 +782,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ofApp.cpp"
-            timestampString = "478696668.722609"
+            timestampString = "478923636.891613"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "225"
-            endingLineNumber = "225"
+            startingLineNumber = "237"
+            endingLineNumber = "237"
             landmarkName = "ofApp::update()"
             landmarkType = "5">
          </BreakpointContent>
@@ -812,11 +798,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/ofApp.cpp"
-            timestampString = "478696668.722609"
+            timestampString = "478923636.891613"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "648"
-            endingLineNumber = "648"
+            startingLineNumber = "646"
+            endingLineNumber = "646"
             landmarkName = "ofApp::guiEvent(ofxUIEventArgs &amp;e)"
             landmarkType = "5">
          </BreakpointContent>
@@ -828,11 +814,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/SurfaceRenderer.h"
-            timestampString = "478730946.193195"
+            timestampString = "478913745.111164"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "41"
-            endingLineNumber = "41"
+            startingLineNumber = "33"
+            endingLineNumber = "33"
             landmarkName = "class SurfaceRenderer"
             landmarkType = "3">
          </BreakpointContent>
@@ -844,11 +830,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/SurfaceRenderer.cpp"
-            timestampString = "478734281.041032"
+            timestampString = "478913745.111164"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1383"
-            endingLineNumber = "1383">
+            startingLineNumber = "275"
+            endingLineNumber = "275">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -858,12 +844,28 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/SurfaceRenderer.cpp"
-            timestampString = "478740310.504414"
+            timestampString = "478913745.111164"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "223"
-            endingLineNumber = "223"
+            startingLineNumber = "151"
+            endingLineNumber = "151"
             landmarkName = "SurfaceRenderer::glPrepareContourLines()"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "src/ofApp.cpp"
+            timestampString = "478923636.891613"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "114"
+            endingLineNumber = "114"
+            landmarkName = "ofApp::update()"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

@@ -14,7 +14,7 @@
 
 
 uniform sampler2DRect depthSampler; // Sampler for the depth image-space elevation texture
-//uniform mat4 depthProjection; // Transformation from depth image space to camera space
+uniform mat4 depthProjection; // Transformation from depth image space to camera space
 uniform vec4 basePlane; // Plane equation of the base plane
 uniform vec2 heightColorMapTransformation; // Transformation from elevation to height color map texture coordinate
 
@@ -27,7 +27,7 @@ void main()
     vertexDic.z=texture2DRect(depthSampler,vertexDic.xy).r;
     
     /* Transform the vertex from depth image space to camera space: */
-    vec4 vertexCc=vertexDic; /*depthProjection*vertexDic; // We don't need this since ofxkinect values are already in camera space
+    vec4 vertexCc=depthProjection*vertexDic;
     
     /* Plug camera-space vertex into the base plane equation: */
     float elevation=dot(basePlane,vertexCc)/vertexCc.w;

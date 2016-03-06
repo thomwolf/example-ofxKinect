@@ -7,13 +7,23 @@
 
 #include "FrameFilter.h"
 
+#include <Geometry/HVector.h>
+#include <Geometry/Plane.h>
+#include <Geometry/Matrix.h>
+#include <Geometry/ProjectiveTransformation.h>
+
 class KinectGrabber: public ofThread {
 public:
+	/* Embedded classes: */
+	typedef Geometry::Plane<double,3> Plane;
+	typedef Geometry::ProjectiveTransformation<double,3> PTransform;
+
+	/* Elements: */
 	KinectGrabber();
 	~KinectGrabber();
     void setup();
     void setupClip(float nearclip, float farclip);
-    void setupFramefilter(int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution,float snearclip, float sfarclip);
+    void setupFramefilter(int sNumAveragingSlots, int gradFieldresolution, float snearclip, float sfarclip,const FrameFilter::PTransform& depthProjection,const FrameFilter::Plane& basePlane, double elevationMin, double elevationMax);
     void setupCalibration(int projectorWidth, int projectorHeight, float schessboardSize, float schessboardColor, float sStabilityTimeInMs, float smaxReprojError);
     void setCalibrationmode();
     void setTestmode();
@@ -23,8 +33,9 @@ public:
     int storedframes;//, storedcoloredframes;
 	ofPixels & getPixels();
 	ofTexture & getTexture();
+    PTransform getProjMatrix(void); // Get unprojection matrix of the kinect
     
-	ofThreadChannel<ofPixels> filtered;
+	ofThreadChannel<ofShortPixels> filtered;
 	ofThreadChannel<ofPixels> colored;
 	ofThreadChannel<ofVec2f*> gradient;
 	ofThreadChannel<float> nearclipchannel;
@@ -50,7 +61,7 @@ private:
     int kinectWidth, kinectHeight;//, projWidth, projHeight;
     ofxCvColorImage         kinectColorImage;
 //    ofxCvGrayscaleImage		kinectGreyscaledImage;
-    ofxCvGrayscaleImage     kinectDepthImage;
+    ofShortPixels     kinectDepthImage;
     //   ofImage                 kinectColoredDepth;
     float maxReprojError;
     // calibration

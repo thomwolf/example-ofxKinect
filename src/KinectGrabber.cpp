@@ -7,6 +7,11 @@
 
 #include "KinectGrabber.h"
 #include "ofConstants.h"
+#include <Geometry/ProjectiveTransformation.h>
+#include <Geometry/GeometryValueCoders.h>
+
+#define DEPTH_X_RES 640
+#define DEPTH_Y_RES 480
 
 KinectGrabber::KinectGrabber()
 :newFrame(true){
@@ -43,17 +48,18 @@ void KinectGrabber::setup(){
     kinect.setUseTexture(false);
     kinectWidth = kinect.getWidth();
     kinectHeight = kinect.getHeight();
-    kinectDepthImage.allocate(kinectWidth, kinectHeight);
-    kinectDepthImage.setUseTexture(false);
+    kinectDepthImage.allocate(kinectWidth, kinectHeight, 1);
+//    kinectDepthImage.setUseTexture(false);
     kinectColorImage.allocate(kinectWidth, kinectHeight);
     kinectColorImage.setUseTexture(false);
 }
 
-void KinectGrabber::setupFramefilter(int sNumAveragingSlots, unsigned int newMinNumSamples, unsigned int newMaxVariance, float newHysteresis, bool newSpatialFilter, int gradFieldresolution, float snearclip, float sfarclip) {
+void KinectGrabber::setupFramefilter(int sNumAveragingSlots, int gradFieldresolution, float snearclip, float sfarclip,const FrameFilter::PTransform& depthProjection,const FrameFilter::Plane& basePlane, double elevationMin, double elevationMax) {
     nearclip =snearclip;
     farclip =sfarclip;
     kinect.setDepthClipping(snearclip, sfarclip);
-    framefilter.setup(kinectWidth, kinectHeight, sNumAveragingSlots, newMinNumSamples, newMaxVariance, newHysteresis, newSpatialFilter, gradFieldresolution, snearclip, sfarclip, &kinect);
+    framefilter.setup(kinectWidth,kinectHeight,sNumAveragingSlots, gradFieldresolution, snearclip, sfarclip, depthProjection, basePlane);
+    framefilter.setValidElevationInterval(depthProjection,basePlane,elevationMin,elevationMax);
     // framefilter.startThread();
 }
 
@@ -83,6 +89,46 @@ void KinectGrabber::setCalibrationmode(){
 
 bool KinectGrabber::isFrameNew(){
 	return newFrame;
+}
+
+KinectGrabber::PTransform KinectGrabber::getProjMatrix(void) {
+	float referencePixelSize = kinect.getZeroPlanePixelSize();
+    float referenceDistance = kinect.getZeroPlaneDistance();
+    float dcmosEmitterDist = kinect.getSensorEmitterDistance();
+    float constantShift = kinect.getConstantShift();
+    
+//	ofMatrix4x4 depthMatrix = ofMatrix4x4(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    /* Calculate the depth-to-distance conversion formula: */
+    double numerator=(4.0*double(dcmosEmitterDist)*double(referenceDistance))/double(referencePixelSize);
+    double denominator=4.0*double(dcmosEmitterDist)/double(referencePixelSize)+4.0*double(constantShift)+1.5;
+    
+    /* Calculate the unprojection scale factor: */
+    double scale=2.0*double(referencePixelSize)/double(referenceDistance);
+    
+    /* Construct the depth pixel unprojection matrix: */
+    PTransform depthProjection;
+
+    PTransform::Matrix& depthMatrix=depthProjection.getMatrix();
+    
+    //depthMatrix=PTransform::Matrix::zero;
+    depthMatrix(0,0)=scale;
+    depthMatrix(0,1)=0;
+    depthMatrix(0,2)=0;
+    depthMatrix(0,3)=-scale*double(DEPTH_X_RES)*0.5;
+    depthMatrix(1,0)=0;
+    depthMatrix(1,1)=scale;
+    depthMatrix(1,2)=0;
+    depthMatrix(1,3)=-scale*double(DEPTH_Y_RES)*0.5;
+    depthMatrix(2,0)=0;
+    depthMatrix(2,1)=0;
+    depthMatrix(2,2)=0;
+    depthMatrix(2,3)=-1.0;
+    depthMatrix(3,0)=0;
+    depthMatrix(3,1)=0;
+    depthMatrix(3,2)=-1.0/numerator;
+    depthMatrix(3,3)=denominator/numerator;
+    
+    return depthProjection;
 }
 
 //ofPixels KinectGrabber::convertProjSpace(ofPixels inputframe){
@@ -173,7 +219,7 @@ void KinectGrabber::threadedFunction(){
             if(kinect.isFrameNew()){
                 newFrame = true;
                 //		kinectColorImage.setFromPixels(kinect.getPixels());
-                kinectDepthImage.setFromPixels(kinect.getDepthPixels());
+                kinectDepthImage = kinect.getRawDepthPixels();
                 //		kinectColoredDepth.setFromPixels(kinectDepthImage.getPixels());
                 
                 if (enableCalibration) {
@@ -181,10 +227,10 @@ void KinectGrabber::threadedFunction(){
                     // If new filtered image => send back to main thread
 #if __cplusplus>=201103
                     colored.send(std::move(kinectColorImage.getPixels()));
-                    filtered.send(std::move(kinectDepthImage.getPixels()));
+                    filtered.send(std::move(kinectDepthImage));
 #else
                     colored.send(kinectColorImage.getPixels());
-                    filtered.send(kinectDepthImage.getPixels());
+                    filtered.send(kinectDepthImage);
 #endif
                     lock();
                     storedframes += 1;
@@ -193,8 +239,8 @@ void KinectGrabber::threadedFunction(){
                 }
                 // if the test mode is activated, the settings are loaded automatically (see gui function)
                 if (enableTestmode) {
-                    ofPixels filteredframe;//, kinectProjImage;
-                    filteredframe = framefilter.filter(kinectDepthImage.getPixels());
+                    ofShortPixels filteredframe;//, kinectProjImage;
+                    filteredframe = framefilter.filter(kinectDepthImage);
                     filteredframe.setImageType(OF_IMAGE_GRAYSCALE);
 //                    wrldcoord = framefilter.getWrldcoordbuffer();
 //                    kinectProjImage = convertProjSpace(filteredframe);

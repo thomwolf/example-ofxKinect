@@ -28,28 +28,31 @@ void ofApp::setup(){
 	chessboardThreshold = 60;
 	lowThresh = 0.2;
 	highThresh = 0.3;
-	//	contourFinder.setMinAreaRadius(12);
-	//	contourFinder.setThreshold(3);
-	//	contourFinder.getTracker().setPersistence(25);
-	//	contourFinder.getTracker().setMaximumDistance(150);
-	//	contourFinder.setFindHoles(true);
-	//	contourFinder.setInvert(false);
 	
 	// kinect depth clipping
 	nearclip = 750;
 	farclip = 950;
+	double elevationMin=-1000.0;
+	double elevationMax=1000.0;
 	int numAveragingSlots=30;
 	unsigned int minNumSamples=10;
 	unsigned int maxVariance=2;
-	float hysteresis=0.5f;
+	float hysteresis=0.1f;
 	bool spatialFilter=false;
 	gradFieldresolution = 20;
     
+	// Load colormap
+    heightMap.load("HeightColorMap.yml");
+	
+	/* Limit the valid elevation range to the extent of the height color map: */
+	//if(elevationMin<heightMap.getScalarRangeMin())
+		elevationMin=heightMap.getScalarRangeMin();
+	//if(elevationMax>heightMap.getScalarRangeMax())
+		elevationMax=heightMap.getScalarRangeMax();
+	
     // kinectgrabber: setup
 	kinectgrabber.setup();
 	//	kinectgrabber.setupClip(nearclip, farclip);
-	kinectgrabber.setupFramefilter(numAveragingSlots, minNumSamples, maxVariance, hysteresis, spatialFilter, gradFieldresolution,nearclip, farclip);
-	kinectgrabber.startThread();
 	
     // calibration config
 	projectorWidth = projWindow->getWidth();
@@ -71,15 +74,17 @@ void ofApp::setup(){
     kinectProjectorCalibration.chessboardColor = chessboardColor;
     kinectProjectorCalibration.setStabilityTimeInMs(StabilityTimeInMs);
     kinectProjectorCalibration.setMirrors(true, true);
+	depthProjection = kinectgrabber.getProjMatrix();
+	
+	basePlane = Geometry::Plane<double, 3>(Geometry::Vector<double, 3>(0,0,1),Geometry::Point<double, 3>(0,0,-950));
+	
+	kinectgrabber.setupFramefilter(numAveragingSlots, gradFieldresolution,nearclip, farclip, depthProjection, basePlane, elevationMin, elevationMax);
 	//    maxReprojError = maxReprojError;
     // sets the output
     kinectProjectorOutput.setup(kinectWrapper, projectorWidth, projectorHeight);
     kinectProjectorOutput.setMirrors(false, false);//true, true);
     setupView();
 	//kinectProjectorOutput.load("kinectProjector.yml");
-	
-	// Load colormap
-    colormap.load("HeightColorMap.yml");
 	
     // prepare shaders and fbo
 	contourlinefactor = 50;
@@ -91,15 +96,22 @@ void ofApp::setup(){
 	
 	// setup the gui
     setupGui();
+	
+	surfaceRenderer=new SurfaceRenderer(640,480,depthProjection,basePlane);
+	surfaceRenderer->setHeightMapRange(heightMap.getNumEntries(),heightMap.getScalarRangeMin(),heightMap.getScalarRangeMax());
+	surfaceRenderer->setContourLineDistance(contourlinefactor/10);
+
+	kinectgrabber.startThread();
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
 	
 	// Get depth image from kinect grabber
-	ofPixels filteredframe;
+	ofShortPixels filteredframe;
 	if (kinectgrabber.filtered.tryReceive(filteredframe)) {
 		///		// If true, `filteredframe` can be used.
+		surfaceRenderer->setDepthImage(filteredframe);
 		FilteredDepthImage.setFromPixels(filteredframe);
 		FilteredDepthImage.updateTexture();
 		
@@ -113,7 +125,7 @@ void ofApp::update(){
 		if (enableTestmode){
 			fbo.begin(); // drawing colormap texture to shader
 			shader.begin();
-			shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
+			shader.setUniformTexture( "texture1", heightMap.getTexture(), 1 ); //"1" means that it is texture 1
 			shader.setUniform1f("texsize", 255 );
 			shader.setUniform1f("contourLineFactor", contourlinefactor);
 			ofSetColor( 255, 255, 255 );
@@ -354,321 +366,322 @@ void ofApp::drawProj(ofEventArgs & args){
 		fbo.end();			//End drawing into buffer
 		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
 	} else if (enableTestmode) {
-					
-//		glPushMatrix();
-//		glMultMatrixf(matrix);
-//		glPushMatrix();
-//		fbo.draw(0, 0);
-//		glPopMatrix();
-//		glPopMatrix();
+		
+		//		glPushMatrix();
+		//		glMultMatrixf(matrix);
+		//		glPushMatrix();
+		//		fbo.draw(0, 0);
+		//		glPopMatrix();
+		//		glPopMatrix();
 		
 		kinectProjectorOutput.loadCalibratedView();
-		fbo.getTexture().bind();
-		mesh.draw();
-		fbo.getTexture().unbind();
+//		fbo.getTexture().bind();
+//		mesh.draw();
+//		fbo.getTexture().unbind();
+		surfaceRenderer->glRenderSinglePass(heightMap.getTexture());
 		kinectProjectorOutput.unloadCalibratedView();
-			
-			//		kinectgrabber.framefilter.displayFlowField();
-			//		ofSetColor(255, 190, 70);
-			//		ofPoint cent = ofPoint(projectorWidth/2, projectorHeight/2);
-			//		for (int i = 0; i < contourFinder.size(); i++) {
-			//
-			//			ofPolyline blobContour = contourFinder.getPolyline(i);
-			//			if(!blobContour.isClosed()){
-			//				blobContour.close();
-			//			}
-			//
-			//			//if (!blobContour.inside(cent)) {
-			//			ofPolyline rect = blobContour.getResampledByCount(8);
-			//				ofBeginShape();
-			//			kinectgrabber.lock();
-			//				for (int j = 0; j < rect.size() - 1; j++) {
-			//					rect[j].z = (farclip-nearclip)*highThresh+nearclip;
-			//					ofPoint wrld = kinectgrabber.kinectWrapper->getWorldFromRgbCalibratedXYZ(rect[j], true,true);
-			//					ofPoint currVertex = kinectProjectorOutput.projectFromDepthXYZ(rect[j]);
-			//					ofVertex(currVertex.x, currVertex.y);
-			////					cout << "blob j: "<< j << " rect: "<< rect[j] << " wrld: " << wrld << " currVertex : " << currVertex << endl;
-			//				}
-			//			kinectgrabber.unlock();
-			//				ofEndShape();
-			//			//}
-			//		}
-			
-		} else if (enableGame) {
-			//1. Drawing into fbo buffer
-			fbo.begin();		//Start drawing grayscale depth image into buffer
-			ofClear(0);
-			ofSetColor(255, 170, 170);
-			FilteredDepthImage.ofBaseDraws::draw(0, 0, projectorWidth, projectorHeight);
-			fbo.end();			//End drawing into buffer
-			
-			//		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
-			//2. Drawing to screen through the shader
-			shader.begin();
-			shader.setUniformTexture( "texture1", colormap.getTexture(), 1 ); //"1" means that it is texture 1
-			shader.setUniform1f("texsize", 255 );
-			shader.setUniform1f("contourLineFactor", contourlinefactor);
-			ofSetColor( 255, 255, 255 );
-			fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
-			shader.end();
-			
-			for (auto & v : vehicles){
-				v.draw();
-			}
-			kinectgrabber.framefilter.displayFlowField();
-		} else {
-			ofBackground(255);
-		}
-	}
-	
-	//--------------------------------------------------------------
-	void ofApp::exit(){
 		
-		kinectgrabber.stopThread();
-		delete gui;
-		delete guiImageSettings;
-	}
-	
-	//--------------------------------------------------------------
-	void ofApp::keyPressed(int key){
+		//		kinectgrabber.framefilter.displayFlowField();
+		//		ofSetColor(255, 190, 70);
+		//		ofPoint cent = ofPoint(projectorWidth/2, projectorHeight/2);
+		//		for (int i = 0; i < contourFinder.size(); i++) {
+		//
+		//			ofPolyline blobContour = contourFinder.getPolyline(i);
+		//			if(!blobContour.isClosed()){
+		//				blobContour.close();
+		//			}
+		//
+		//			//if (!blobContour.inside(cent)) {
+		//			ofPolyline rect = blobContour.getResampledByCount(8);
+		//				ofBeginShape();
+		//			kinectgrabber.lock();
+		//				for (int j = 0; j < rect.size() - 1; j++) {
+		//					rect[j].z = (farclip-nearclip)*highThresh+nearclip;
+		//					ofPoint wrld = kinectgrabber.kinectWrapper->getWorldFromRgbCalibratedXYZ(rect[j], true,true);
+		//					ofPoint currVertex = kinectProjectorOutput.projectFromDepthXYZ(rect[j]);
+		//					ofVertex(currVertex.x, currVertex.y);
+		////					cout << "blob j: "<< j << " rect: "<< rect[j] << " wrld: " << wrld << " currVertex : " << currVertex << endl;
+		//				}
+		//			kinectgrabber.unlock();
+		//				ofEndShape();
+		//			//}
+		//		}
 		
-	}
-	
-	//--------------------------------------------------------------
-	void ofApp::keyReleased(int key){
+	} else if (enableGame) {
+		//1. Drawing into fbo buffer
+		fbo.begin();		//Start drawing grayscale depth image into buffer
+		ofClear(0);
+		ofSetColor(255, 170, 170);
+		FilteredDepthImage.ofBaseDraws::draw(0, 0, projectorWidth, projectorHeight);
+		fbo.end();			//End drawing into buffer
 		
-	}
-	
-	//--------------------------------------------------------------
-	void ofApp::mouseMoved(int x, int y ){
+		//		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
+		//2. Drawing to screen through the shader
+		shader.begin();
+		shader.setUniformTexture( "texture1", heightMap.getTexture(), 1 ); //"1" means that it is texture 1
+		shader.setUniform1f("texsize", 255 );
+		shader.setUniform1f("contourLineFactor", contourlinefactor);
+		ofSetColor( 255, 255, 255 );
+		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
+		shader.end();
 		
-	}
-	
-	//--------------------------------------------------------------
-	void ofApp::mouseDragged(int x, int y, int button){
-		
-	}
-	
-	//--------------------------------------------------------------
-	void ofApp::mousePressed(int x, int y, int button){
-		
-	}
-	
-	//--------------------------------------------------------------
-	void ofApp::mouseReleased(int x, int y, int button){
-		
-	}
-	
-	//--------------------------------------------------------------
-	void ofApp::windowResized(int w, int h){
-		
-	}
-	
-	//--------------------------------------------------------------
-	void ofApp::gotMessage(ofMessage msg){
-		
-	}
-	
-	//--------------------------------------------------------------
-	void ofApp::dragEvent(ofDragInfo dragInfo){
-		
-	}
-	
-	//--------------------------------------------------------------
-	void ofApp::createVehicles() {
-		// setup the vehicles
-		vehicles.resize(100);
-		int screenWidth =projWindow->getWidth();
-		int screenHeight =projWindow->getHeight();
-		ofPoint location(screenWidth, screenHeight);
 		for (auto & v : vehicles){
-			v.setup(ofRandom(location.x), ofRandom(location.y), screenWidth, screenHeight);
+			v.draw();
 		}
+		kinectgrabber.framefilter.displayFlowField();
+	} else {
+		ofBackground(255);
 	}
-	
-//--------------------------------------------------------------
-	void ofApp::setupView() {
-		kinectProjectorOutput.load("kinectProjector.yml");
-ofPoint des[4];
-ofPoint src[]={kinectROI.getTopLeft(), kinectROI.getTopRight(), kinectROI.getBottomRight(),kinectROI.getBottomLeft()};
-for (int i = 0; i <4; i++){
-	src[i].z = farclip;
-	des[i] = kinectProjectorOutput.projectFromDepthXYZ(src[i]);
 }
-//ofPoint(0,0),ofPoint(image.width,0),ofPoint(image.width,image.height),ofPoint(0,image.height)};
-
-findHomography(src,des,matrix);
-	}
-
 
 //--------------------------------------------------------------
-	void ofApp::setupGui() {
-		
-		float dim = 16;
-		float length = 300;
-		
-		gui = new ofxUISuperCanvas("- ofxKinect example -");
-		gui->setColorBack(ofColor(51, 55, 56, 200));
-		
-		gui->addSpacer(length, 2);
-		gui->addWidgetDown(new ofxUIMinimalSlider("Kinect tilt angle", -27, 27, 0.0, length, dim));
-		
-		gui->addSpacer(length, 2);
-		gui->addWidgetDown(new ofxUILabel("Calibration instructions", OFX_UI_FONT_MEDIUM));
-		gui->addSpacer(length, 2);
-		gui->addWidgetDown(new ofxUILabel("sdf", "1) Move 2nd window to projector", OFX_UI_FONT_SMALL));
-		gui->addWidgetDown(new ofxUILabel("sdf", "2) Set it to fullscreen", OFX_UI_FONT_SMALL));
-		gui->addWidgetDown(new ofxUILabel("sdf", "3) Activate calibration", OFX_UI_FONT_SMALL));
-		gui->addWidgetDown(new ofxUILabel("sdf", "4) Hold flat board ", OFX_UI_FONT_SMALL));
-		gui->addWidgetDown(new ofxUILabel("sdf", "5) Keep still during some time to capture", OFX_UI_FONT_SMALL));
-		gui->addWidgetDown(new ofxUILabel("sdf", "6) Make 15 captures, then clean the dataset", OFX_UI_FONT_SMALL));
-		
-		gui->addWidgetDown(new ofxUILabel(" ", OFX_UI_FONT_MEDIUM));
-		gui->addWidgetDown(new ofxUILabel("Mode", OFX_UI_FONT_MEDIUM));
-		gui->addSpacer(length, 2);
-		gui->addWidgetDown(new ofxUIToggle("Activate calibration mode", &enableCalibration, dim, dim));
-		gui->addWidgetDown(new ofxUIToggle("Activate game mode", &enableGame, dim, dim));
-		
-		gui->addWidgetDown(new ofxUILabel(" ", OFX_UI_FONT_MEDIUM));
-		gui->addSpacer(length, 2);
-		gui->addWidgetDown(new ofxUIFPS(OFX_UI_FONT_MEDIUM));
-		
-		gui->setPosition(0, 0);//768 - guiImageSettings->getRect()->getHeight());
-		gui->autoSizeToFitWidgets();
-		
-		ofAddListener(gui->newGUIEvent,this,&ofApp::guiEvent);
-		
-		///////////////////////////////////////////////
-		
-		guiImageSettings = new ofxUISuperCanvas("Image settings");
-		guiImageSettings->setColorBack(ofColor(51, 55, 56, 200));
-		
-		guiImageSettings->addSpacer(length, 2);
-		guiImageSettings->addWidgetDown(new ofxUISlider("Chessboard size", 0, 255, &kinectProjectorCalibration.chessboardSize, length, dim));
-		guiImageSettings->addWidgetDown(new ofxUISlider("Chessboard luminosity", 0, 255, &kinectProjectorCalibration.chessboardColor, length, dim));
-		guiImageSettings->addWidgetDown(new ofxUISlider("Chessboard detec. threshold", 0, 255, &kinectgrabber.chessboardThreshold, length, dim));
-		guiImageSettings->addWidgetDown(new ofxUIToggle("Adaptative threshold", &kinectProjectorCalibration.b_CV_CALIB_CB_ADAPTIVE_THRESH, dim, dim));
-		guiImageSettings->addWidgetDown(new ofxUIToggle("Normalize the image", &kinectProjectorCalibration.b_CV_CALIB_CB_NORMALIZE_IMAGE, dim, dim));
-		guiImageSettings->addSpacer(length, 2);
-		guiImageSettings->addWidgetDown(new ofxUI2DPad("Chessboard position offset", ofVec2f(-1.0, 1.0), ofVec2f(-1.0, 1.0), ofVec2f(0, 0), length, length * 3 / 4));
-		
-		guiImageSettings->addWidgetDown(new ofxUILabel(" ", OFX_UI_FONT_MEDIUM));
-		guiImageSettings->addWidgetDown(new ofxUILabel("Calibration", OFX_UI_FONT_MEDIUM));
-		guiImageSettings->addSpacer(length, 2);
-		guiImageSettings->addWidgetDown(new ofxUISlider("Max reproj. error", 0.50, 5.00, &maxReprojError, length, dim));
-		guiImageSettings->addWidgetDown(new ofxUIButton("Clean dataset (remove > max reproj error)", false, dim, dim));
-		guiImageSettings->addWidgetDown(new ofxUIButton("Clear dataset (remove all)", false, dim, dim));
-		guiImageSettings->addWidgetDown(new ofxUILabel(" ", OFX_UI_FONT_LARGE));
-		guiImageSettings->addWidgetDown(new ofxUILabel("errorLabel", "Avg Reprojection error: 0.0", OFX_UI_FONT_SMALL));
-		guiImageSettings->addWidgetDown(new ofxUILabel("capturesLabel", "Number of captures: 0", OFX_UI_FONT_SMALL));
-		
-		guiImageSettings->addWidgetDown(new ofxUIToggle("Activate test mode", &enableTestmode, dim, dim));
-		guiImageSettings->addWidgetDown(new ofxUIToggle("Horizontal mirror", &horizontalMirror, dim, dim));
-		guiImageSettings->addWidgetDown(new ofxUIToggle("Vertical Mirror", &verticalMirror, dim, dim));
-		//	guiImageSettings->addSpacer(length, 2);
-		//	guiImageSettings->addWidgetDown(new ofxUILabel("lbl", "Tracking options", OFX_UI_FONT_MEDIUM));
-		//	guiImageSettings->addWidgetDown(new ofxUIRangeSlider("Thresholds", 0.0, 1.0, &kinectgrabber.lowThresh, &kinectgrabber.highThresh, length, dim));
-		
-		guiImageSettings->autoSizeToFitWidgets();
-		guiImageSettings->setPosition(0, 0);//768 - guiImageSettings->getRect()->getHeight());
-		//guiImageSettings->toggleMinified();
-		guiImageSettings->setVisible(enableCalibration);
-		ofAddListener(guiImageSettings->newGUIEvent,this,&ofApp::guiEvent);
-		
-		///////////////////////////////////////////////
-		
-		guiMappingSettings = new ofxUISuperCanvas("Mapping settings");
-		guiMappingSettings->setColorBack(ofColor(51, 55, 56, 200));
-		
-		guiMappingSettings->addSpacer(length, 2);
-		guiMappingSettings->addWidgetDown(new ofxUIRangeSlider("Kinect range", 500.0, 1500.0, &nearclip, &farclip, length, dim));
-		
-		guiMappingSettings->addSpacer(length, 2);
-		guiMappingSettings->addWidgetDown(new ofxUISlider("Contourline factor", 0.0, 255, &contourlinefactor, length, dim));
-		guiMappingSettings->addSpacer(length, 2);
-		guiMappingSettings->addWidgetDown(new ofxUIRangeSlider("Threshold", 0.0, 1.0, &lowThresh, &highThresh, length, dim));
-		
-		guiMappingSettings->autoSizeToFitWidgets();
-		guiMappingSettings->setPosition(1280 - guiMappingSettings->getRect()->getWidth(), 0);
-		//guiImageSettings->toggleMinified();
-		ofAddListener(guiMappingSettings->newGUIEvent,this,&ofApp::guiEvent);
-		
-	}
+void ofApp::exit(){
 	
-	//--------------------------------------------------------------
-	void ofApp::guiUpdateLabels() {
-		ofxUILabel* l;
-		l = (ofxUILabel*) guiImageSettings->getWidget("errorLabel");
-		l->setLabel("Avg Reprojection error: " + ofToString(kinectProjectorCalibration.getReprojectionError(), 2));
-		//l->setLabel("MaxDepth: " + ofToString(maxdepth));
-		
-		l = (ofxUILabel*) guiImageSettings->getWidget("capturesLabel");
-		l->setLabel("Number of captures: " + ofToString(kinectProjectorCalibration.getDatabaseSize()));
-		//l->setLabel("MinDepth: " + ofToString(mindepth));
-	}
-	
-	//--------------------------------------------------------------
-	void ofApp::guiEvent(ofxUIEventArgs &e) {
-		string name = e.widget->getName();
-		int kind = e.widget->getKind();
-		if (name == "Clean dataset (remove > max reproj error)") {
-			ofxUIButton* b = (ofxUIButton*)e.widget;
-			if(b->getValue()) kinectProjectorCalibration.clean(maxReprojError);
-		} else if (name == "Clear dataset (remove all)") {
-			ofxUIButton* b = (ofxUIButton*)e.widget;
-			if(b->getValue()) kinectProjectorCalibration.clearAll();
-		}else if (name == "Activate game mode") {
-			ofxUIButton* b = (ofxUIButton*)e.widget;
-			if(b->getValue()) {
-				createVehicles();
-				enableTestmode = false;
-				enableCalibration = false;
-				enableGame = true;
-			}
-		} else if (name == "Activate test mode") {
-			ofxUIButton* b = (ofxUIButton*)e.widget;
-			if(b->getValue()) {
-				enableTestmode = true;
-				enableCalibration = false;
-				enableGame = false;
-				kinectgrabber.lock();
-				kinectgrabber.setTestmode();
-				kinectgrabber.unlock();
-				setupView();
-				guiImageSettings->setVisible(false);
-				guiMappingSettings->setVisible(true);
-				//			gui->setVisible(true);
-			}
-		} else if (name == "Activate calibration mode") {
-			ofxUIButton* b = (ofxUIButton*)e.widget;
-			if(b->getValue()){
-				enableCalibration = true;
-				enableTestmode = false;
-				enableGame = false;
-				gotROI = 1;
-				kinectgrabber.lock();
-				kinectgrabber.setCalibrationmode();
-				kinectgrabber.unlock();
-				guiImageSettings->setVisible(true);
-				guiMappingSettings->setVisible(false);
-				//			gui->toggleVisible();
-			}
-		} else if (name == "Kinect tilt angle") {
-			//		ofxUISlider *slider = (ofxUISlider *) e.widget;
-			//		kinect.setCameraTiltAngle(slider->getValue());
-		} else if (name == "Chessboard position offset") {
-			ofxUI2DPad *pad = (ofxUI2DPad *) e.widget;
-			ofVec2f trans = pad->getValue();
-			kinectProjectorCalibration.setChessboardTranslation((trans.x * projectorWidth) - projectorWidth / 2, (trans.y * projectorHeight) - projectorHeight / 2);
-		} else if (name == "Kinect range") {
-			kinectgrabber.nearclipchannel.send(nearclip);
-			kinectgrabber.farclipchannel.send(farclip);
-		} else if (name == "Horizontal mirror" || name == "Vertical mirror") {
-			kinectProjectorCalibration.setMirrors(horizontalMirror, verticalMirror);
-			//		kinectProjectorOutput.setMirrors(horizontalMirror, verticalMirror);
-		}
-	}
+	kinectgrabber.stopThread();
+	delete gui;
+	delete guiImageSettings;
+}
 
+//--------------------------------------------------------------
+void ofApp::keyPressed(int key){
+	
+}
+
+//--------------------------------------------------------------
+void ofApp::keyReleased(int key){
+	
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseMoved(int x, int y ){
+	
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseDragged(int x, int y, int button){
+	
+}
+
+//--------------------------------------------------------------
+void ofApp::mousePressed(int x, int y, int button){
+	
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseReleased(int x, int y, int button){
+	
+}
+
+//--------------------------------------------------------------
+void ofApp::windowResized(int w, int h){
+	
+}
+
+//--------------------------------------------------------------
+void ofApp::gotMessage(ofMessage msg){
+	
+}
+
+//--------------------------------------------------------------
+void ofApp::dragEvent(ofDragInfo dragInfo){
+	
+}
+
+//--------------------------------------------------------------
+void ofApp::createVehicles() {
+	// setup the vehicles
+	vehicles.resize(100);
+	int screenWidth =projWindow->getWidth();
+	int screenHeight =projWindow->getHeight();
+	ofPoint location(screenWidth, screenHeight);
+	for (auto & v : vehicles){
+		v.setup(ofRandom(location.x), ofRandom(location.y), screenWidth, screenHeight);
+	}
+}
+
+//--------------------------------------------------------------
+void ofApp::setupGui() {
+	
+	float dim = 16;
+	float length = 300;
+	
+	gui = new ofxUISuperCanvas("- ofxKinect example -");
+	gui->setColorBack(ofColor(51, 55, 56, 200));
+	
+	gui->addSpacer(length, 2);
+	gui->addWidgetDown(new ofxUIMinimalSlider("Kinect tilt angle", -27, 27, 0.0, length, dim));
+	
+	gui->addSpacer(length, 2);
+	gui->addWidgetDown(new ofxUILabel("Calibration instructions", OFX_UI_FONT_MEDIUM));
+	gui->addSpacer(length, 2);
+	gui->addWidgetDown(new ofxUILabel("sdf", "1) Move 2nd window to projector", OFX_UI_FONT_SMALL));
+	gui->addWidgetDown(new ofxUILabel("sdf", "2) Set it to fullscreen", OFX_UI_FONT_SMALL));
+	gui->addWidgetDown(new ofxUILabel("sdf", "3) Activate calibration", OFX_UI_FONT_SMALL));
+	gui->addWidgetDown(new ofxUILabel("sdf", "4) Hold flat board ", OFX_UI_FONT_SMALL));
+	gui->addWidgetDown(new ofxUILabel("sdf", "5) Keep still during some time to capture", OFX_UI_FONT_SMALL));
+	gui->addWidgetDown(new ofxUILabel("sdf", "6) Make 15 captures, then clean the dataset", OFX_UI_FONT_SMALL));
+	
+	gui->addWidgetDown(new ofxUILabel(" ", OFX_UI_FONT_MEDIUM));
+	gui->addWidgetDown(new ofxUILabel("Mode", OFX_UI_FONT_MEDIUM));
+	gui->addSpacer(length, 2);
+	gui->addWidgetDown(new ofxUIToggle("Activate calibration mode", &enableCalibration, dim, dim));
+	gui->addWidgetDown(new ofxUIToggle("Activate game mode", &enableGame, dim, dim));
+	
+	gui->addWidgetDown(new ofxUILabel(" ", OFX_UI_FONT_MEDIUM));
+	gui->addSpacer(length, 2);
+	gui->addWidgetDown(new ofxUIFPS(OFX_UI_FONT_MEDIUM));
+	
+	gui->setPosition(0, 0);//768 - guiImageSettings->getRect()->getHeight());
+	gui->autoSizeToFitWidgets();
+	
+	ofAddListener(gui->newGUIEvent,this,&ofApp::guiEvent);
+	
+	///////////////////////////////////////////////
+	
+	guiImageSettings = new ofxUISuperCanvas("Image settings");
+	guiImageSettings->setColorBack(ofColor(51, 55, 56, 200));
+	
+	guiImageSettings->addSpacer(length, 2);
+	guiImageSettings->addWidgetDown(new ofxUISlider("Chessboard size", 0, 255, &kinectProjectorCalibration.chessboardSize, length, dim));
+	guiImageSettings->addWidgetDown(new ofxUISlider("Chessboard luminosity", 0, 255, &kinectProjectorCalibration.chessboardColor, length, dim));
+	guiImageSettings->addWidgetDown(new ofxUISlider("Chessboard detec. threshold", 0, 255, &kinectgrabber.chessboardThreshold, length, dim));
+	guiImageSettings->addWidgetDown(new ofxUIToggle("Adaptative threshold", &kinectProjectorCalibration.b_CV_CALIB_CB_ADAPTIVE_THRESH, dim, dim));
+	guiImageSettings->addWidgetDown(new ofxUIToggle("Normalize the image", &kinectProjectorCalibration.b_CV_CALIB_CB_NORMALIZE_IMAGE, dim, dim));
+	guiImageSettings->addSpacer(length, 2);
+	guiImageSettings->addWidgetDown(new ofxUI2DPad("Chessboard position offset", ofVec2f(-1.0, 1.0), ofVec2f(-1.0, 1.0), ofVec2f(0, 0), length, length * 3 / 4));
+	
+	guiImageSettings->addWidgetDown(new ofxUILabel(" ", OFX_UI_FONT_MEDIUM));
+	guiImageSettings->addWidgetDown(new ofxUILabel("Calibration", OFX_UI_FONT_MEDIUM));
+	guiImageSettings->addSpacer(length, 2);
+	guiImageSettings->addWidgetDown(new ofxUISlider("Max reproj. error", 0.50, 5.00, &maxReprojError, length, dim));
+	guiImageSettings->addWidgetDown(new ofxUIButton("Clean dataset (remove > max reproj error)", false, dim, dim));
+	guiImageSettings->addWidgetDown(new ofxUIButton("Clear dataset (remove all)", false, dim, dim));
+	guiImageSettings->addWidgetDown(new ofxUILabel(" ", OFX_UI_FONT_LARGE));
+	guiImageSettings->addWidgetDown(new ofxUILabel("errorLabel", "Avg Reprojection error: 0.0", OFX_UI_FONT_SMALL));
+	guiImageSettings->addWidgetDown(new ofxUILabel("capturesLabel", "Number of captures: 0", OFX_UI_FONT_SMALL));
+	
+	guiImageSettings->addWidgetDown(new ofxUIToggle("Activate test mode", &enableTestmode, dim, dim));
+	guiImageSettings->addWidgetDown(new ofxUIToggle("Horizontal mirror", &horizontalMirror, dim, dim));
+	guiImageSettings->addWidgetDown(new ofxUIToggle("Vertical Mirror", &verticalMirror, dim, dim));
+	//	guiImageSettings->addSpacer(length, 2);
+	//	guiImageSettings->addWidgetDown(new ofxUILabel("lbl", "Tracking options", OFX_UI_FONT_MEDIUM));
+	//	guiImageSettings->addWidgetDown(new ofxUIRangeSlider("Thresholds", 0.0, 1.0, &kinectgrabber.lowThresh, &kinectgrabber.highThresh, length, dim));
+	
+	guiImageSettings->autoSizeToFitWidgets();
+	guiImageSettings->setPosition(0, 0);//768 - guiImageSettings->getRect()->getHeight());
+	//guiImageSettings->toggleMinified();
+	guiImageSettings->setVisible(enableCalibration);
+	ofAddListener(guiImageSettings->newGUIEvent,this,&ofApp::guiEvent);
+	
+	///////////////////////////////////////////////
+	
+	guiMappingSettings = new ofxUISuperCanvas("Mapping settings");
+	guiMappingSettings->setColorBack(ofColor(51, 55, 56, 200));
+	
+	guiMappingSettings->addSpacer(length, 2);
+	guiMappingSettings->addWidgetDown(new ofxUIRangeSlider("Kinect range", 500.0, 1500.0, &nearclip, &farclip, length, dim));
+	
+	guiMappingSettings->addSpacer(length, 2);
+	guiMappingSettings->addWidgetDown(new ofxUISlider("Contourline factor", 0.0, 255, &contourlinefactor, length, dim));
+	guiMappingSettings->addSpacer(length, 2);
+	guiMappingSettings->addWidgetDown(new ofxUIRangeSlider("Threshold", 0.0, 1.0, &lowThresh, &highThresh, length, dim));
+	
+	guiMappingSettings->autoSizeToFitWidgets();
+	guiMappingSettings->setPosition(1280 - guiMappingSettings->getRect()->getWidth(), 0);
+	//guiImageSettings->toggleMinified();
+	ofAddListener(guiMappingSettings->newGUIEvent,this,&ofApp::guiEvent);
+	
+}
+
+//--------------------------------------------------------------
+void ofApp::guiUpdateLabels() {
+	ofxUILabel* l;
+	l = (ofxUILabel*) guiImageSettings->getWidget("errorLabel");
+	l->setLabel("Avg Reprojection error: " + ofToString(kinectProjectorCalibration.getReprojectionError(), 2));
+	//l->setLabel("MaxDepth: " + ofToString(maxdepth));
+	
+	l = (ofxUILabel*) guiImageSettings->getWidget("capturesLabel");
+	l->setLabel("Number of captures: " + ofToString(kinectProjectorCalibration.getDatabaseSize()));
+	//l->setLabel("MinDepth: " + ofToString(mindepth));
+}
+
+//--------------------------------------------------------------
+void ofApp::guiEvent(ofxUIEventArgs &e) {
+	string name = e.widget->getName();
+	int kind = e.widget->getKind();
+	if (name == "Clean dataset (remove > max reproj error)") {
+		ofxUIButton* b = (ofxUIButton*)e.widget;
+		if(b->getValue()) kinectProjectorCalibration.clean(maxReprojError);
+	} else if (name == "Clear dataset (remove all)") {
+		ofxUIButton* b = (ofxUIButton*)e.widget;
+		if(b->getValue()) kinectProjectorCalibration.clearAll();
+	}else if (name == "Activate game mode") {
+		ofxUIButton* b = (ofxUIButton*)e.widget;
+		if(b->getValue()) {
+			createVehicles();
+			enableTestmode = false;
+			enableCalibration = false;
+			enableGame = true;
+		}
+	} else if (name == "Activate test mode") {
+		ofxUIButton* b = (ofxUIButton*)e.widget;
+		if(b->getValue()) {
+			enableTestmode = true;
+			enableCalibration = false;
+			enableGame = false;
+			kinectgrabber.lock();
+			kinectgrabber.setTestmode();
+			kinectgrabber.unlock();
+			setupView();
+			guiImageSettings->setVisible(false);
+			guiMappingSettings->setVisible(true);
+			//			gui->setVisible(true);
+		}
+	} else if (name == "Activate calibration mode") {
+		ofxUIButton* b = (ofxUIButton*)e.widget;
+		if(b->getValue()){
+			enableCalibration = true;
+			enableTestmode = false;
+			enableGame = false;
+			gotROI = 1;
+			kinectgrabber.lock();
+			kinectgrabber.setCalibrationmode();
+			kinectgrabber.unlock();
+			guiImageSettings->setVisible(true);
+			guiMappingSettings->setVisible(false);
+			//			gui->toggleVisible();
+		}
+	} else if (name == "Kinect tilt angle") {
+		//		ofxUISlider *slider = (ofxUISlider *) e.widget;
+		//		kinect.setCameraTiltAngle(slider->getValue());
+	} else if (name == "Chessboard position offset") {
+		ofxUI2DPad *pad = (ofxUI2DPad *) e.widget;
+		ofVec2f trans = pad->getValue();
+		kinectProjectorCalibration.setChessboardTranslation((trans.x * projectorWidth) - projectorWidth / 2, (trans.y * projectorHeight) - projectorHeight / 2);
+	} else if (name == "Kinect range") {
+		kinectgrabber.nearclipchannel.send(nearclip);
+		kinectgrabber.farclipchannel.send(farclip);
+	} else if (name == "Horizontal mirror" || name == "Vertical mirror") {
+		kinectProjectorCalibration.setMirrors(horizontalMirror, verticalMirror);
+		//		kinectProjectorOutput.setMirrors(horizontalMirror, verticalMirror);
+	}
+}
+
+//--------------------------------------------------------------
+void ofApp::setupView() {
+	kinectProjectorOutput.load("kinectProjector.yml");
+	ofPoint des[4];
+	ofPoint src[]={kinectROI.getTopLeft(), kinectROI.getTopRight(), kinectROI.getBottomRight(),kinectROI.getBottomLeft()};
+	for (int i = 0; i <4; i++){
+		src[i].z = farclip;
+		des[i] = kinectProjectorOutput.projectFromDepthXYZ(src[i]);
+	}
+	//ofPoint(0,0),ofPoint(image.width,0),ofPoint(image.width,image.height),ofPoint(0,image.height)};
+	
+	findHomography(src,des,matrix);
+}
+
+//--------------------------------------------------------------
 void ofApp::findHomography(ofPoint src[4], ofPoint dst[4], float homography[16]){
 	// arturo castro - 08/01/2010
 	//
@@ -769,8 +782,8 @@ void ofApp::gaussian_elimination(float *input, int n){
 		for(int j=i+1;j<n-1;j++){
 			A[i*n+m]-=A[i*n+j]*A[j*n+m];
 			//A[i*n+j]=0;
-		}  
-	}  
+		}
+	}
 }
 //--------------------------------------------------------------
 //Universal function which sets normals for the triangle mesh

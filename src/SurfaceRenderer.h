@@ -52,6 +52,8 @@ class SurfaceRenderer //:public GLObject
     unsigned int width, height; // Width and height of the depth image
 	Plane basePlane; // Base plane to calculate surface elevation
 	ofVec4f basePlaneEq; // Base plane equation in GLSL-compatible format
+    PTransform depthProjection; // The transformation from depth image space to camera space
+    GLfloat depthProjectionMatrix[16]; // Same, in GLSL-compatible format
 	bool usePreboundDepthTexture; // Flag if the renderer should use the depth texture already bound to texture unit 0
 	bool drawContourLines; // Flag if topographic contour lines are enabled
 	GLfloat contourLineFactor; // Inverse elevation distance between adjacent topographic contour lines
@@ -60,6 +62,7 @@ class SurfaceRenderer //:public GLObject
 	ofFloatPixels depthImage; // The most recent float-pixel depth image
 	unsigned int depthImageVersion; // Version number of the depth image
 	double animationTime; // Time value for water animation
+    float projFactor; // To convert kinect camera coord to world coord
 
 	/* Constructors and destructors: */
 	public:

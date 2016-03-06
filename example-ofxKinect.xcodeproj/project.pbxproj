@@ -68,10 +68,11 @@
 		B712B9FF1C6E3D0E00D3C52F /* ofxToggle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B712B9F61C6E3D0E00D3C52F /* ofxToggle.cpp */; };
 		B742D8461C79B06D0084B39F /* KinectGrabber.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B742D8441C79B06D0084B39F /* KinectGrabber.cpp */; };
 		B77DB8A51C88D8E4008D63C6 /* SurfaceRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B77DB8A31C88D8E4008D63C6 /* SurfaceRenderer.cpp */; };
+		B77DB8B21C8B9F08008D63C6 /* ColorMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B77DB8B11C8B9F08008D63C6 /* ColorMap.cpp */; };
 		B79D691F1C7C6C5A0079205E /* vehicle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B79D691D1C7C6C5A0079205E /* vehicle.cpp */; };
 		B7F55E991C78A81200380590 /* FrameFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B724FB2C1C765F46004C21CC /* FrameFilter.cpp */; };
 		B906C0D0B435A2FBCFBB7AE1 /* KinectProjectorOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4850F8CA4F961A3CFA83D7E /* KinectProjectorOutput.cpp */; };
-		BBAB23CB13894F3D00AA2426 /* GLUT.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = BBAB23BE13894E4700AA2426 /* GLUT.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		BBAB23CB13894F3D00AA2426 /* GLUT.framework in Copy Files */ = {isa = PBXBuildFile; fileRef = BBAB23BE13894E4700AA2426 /* GLUT.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		BFEFCE32DAFE10A8EB519F6C /* ofxUISpacer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30CBAAEC78A0E9EBBB10A05A /* ofxUISpacer.cpp */; };
 		C30B3A2A37F8F32EE7318718 /* ofxUILabelToggle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76AF3B44E0E2FA8BFBD5F592 /* ofxUILabelToggle.cpp */; };
 		C381F2B7CFD84C0E540EB4BC /* ofxUIBiLabelSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 876BBA9542E267584885CAD8 /* ofxUIBiLabelSlider.cpp */; };
@@ -139,14 +140,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		E4C2427710CC5ABF004149E2 /* CopyFiles */ = {
+		E4C2427710CC5ABF004149E2 /* Copy Files */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				BBAB23CB13894F3D00AA2426 /* GLUT.framework in CopyFiles */,
+				BBAB23CB13894F3D00AA2426 /* GLUT.framework in Copy Files */,
 			);
+			name = "Copy Files";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -358,6 +360,7 @@
 		B77DB8AA1C88EB91008D63C6 /* Sandbox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Sandbox.cpp; sourceTree = "<group>"; };
 		B77DB8AF1C89014A008D63C6 /* SurfaceElevationShader.fs */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; name = SurfaceElevationShader.fs; path = bin/data/SurfaceElevationShader.fs; sourceTree = SOURCE_ROOT; };
 		B77DB8B01C89014A008D63C6 /* SurfaceElevationShader.vs */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; name = SurfaceElevationShader.vs; path = bin/data/SurfaceElevationShader.vs; sourceTree = SOURCE_ROOT; };
+		B77DB8B11C8B9F08008D63C6 /* ColorMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorMap.cpp; sourceTree = "<group>"; };
 		B79D691D1C7C6C5A0079205E /* vehicle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vehicle.cpp; sourceTree = "<group>"; };
 		B79D691E1C7C6C5A0079205E /* vehicle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vehicle.h; sourceTree = "<group>"; };
 		B7BF51E8E757FF8A162D3662 /* lsh_index.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = lsh_index.h; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/flann/lsh_index.h; sourceTree = SOURCE_ROOT; };
@@ -1194,6 +1197,7 @@
 				B724FB2D1C765F46004C21CC /* FrameFilter.h */,
 				B77DB8A31C88D8E4008D63C6 /* SurfaceRenderer.cpp */,
 				B77DB8A41C88D8E4008D63C6 /* SurfaceRenderer.h */,
+				B77DB8B11C8B9F08008D63C6 /* ColorMap.cpp */,
 				B718468E1C73B86A00AAEA3D /* ColorMap.h */,
 				E4B69E1D0A3A1BDC003C02F2 /* main.cpp */,
 				E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */,
@@ -1291,7 +1295,7 @@
 				E4B69B580A3A1756003C02F2 /* Sources */,
 				E4B69B590A3A1756003C02F2 /* Frameworks */,
 				E4B6FFFD0C3F9AB9008CF71C /* ShellScript */,
-				E4C2427710CC5ABF004149E2 /* CopyFiles */,
+				E4C2427710CC5ABF004149E2 /* Copy Files */,
 			);
 			buildRules = (
 			);
@@ -1394,6 +1398,7 @@
 				63020F16C7E8DED980111241 /* ofxCvImage.cpp in Sources */,
 				D3301F6A0B43BB293ED97C1D /* ofxCvShortImage.cpp in Sources */,
 				63B57AC5BF4EF088491E0317 /* ofxXmlSettings.cpp in Sources */,
+				B77DB8B21C8B9F08008D63C6 /* ColorMap.cpp in Sources */,
 				933A2227713C720CEFF80FD9 /* tinyxml.cpp in Sources */,
 				9D44DC88EF9E7991B4A09951 /* tinyxmlerror.cpp in Sources */,
 				5A4349E9754D6FA14C0F2A3A /* tinyxmlparser.cpp in Sources */,
