@@ -42,6 +42,7 @@ class SurfaceRenderer //:public GLObject
 		unsigned int depthTextureVersion; // Version number of the depth image texture
 		int contourLineFramebufferSize[2]; // Current width and height of contour line rendering frame buffer
 		ofFbo contourLineFramebufferObject; // Frame buffer object used to render topographic contour lines
+        ofFbo                       fbo;			//Buffer for main drawing
 		unsigned int surfaceSettingsVersion; // Version number of surface settings for which the height map shader was built
 	
         ofShader elevationShader, heightMapShader;            //Shaders for contourline computing and main display

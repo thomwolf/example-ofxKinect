@@ -19,6 +19,8 @@ uniform vec4 basePlane; // Plane equation of the base plane
 uniform vec2 heightColorMapTransformation; // Transformation from elevation to height color map texture coordinate
 
 varying float heightColorMapTexCoord; // Texture coordinate for the height color map
+//varying float col1; // Texture coordinate for the height color map
+//varying float color2; // Texture coordinate for the height color map
 
 void main()
 {
@@ -30,9 +32,17 @@ void main()
     vec4 vertexCc=depthProjection*vertexDic;
     
     /* Plug camera-space vertex into the base plane equation: */
-    float elevation=dot(basePlane,vertexCc)/vertexCc.w;
+    float elevation=dot(basePlane,vertexCc)*vertexCc.z;///vertexCc.w;
     
     /* Transform elevation to height color map texture coordinate: */
+//    col1 = 0.0;
+//    if (vertexDic.x > 640)
+//        col1 = 1.0;
+    
+//    color2 = 0.0;
+//    if (vertexDic.y > 480)
+//        color2 = 1.0;
+//    
     heightColorMapTexCoord=elevation*heightColorMapTransformation.x+heightColorMapTransformation.y;
     
     /* Transform vertex to clip coordinates: */

@@ -28,6 +28,7 @@ void ofApp::setup(){
 	chessboardThreshold = 60;
 	lowThresh = 0.2;
 	highThresh = 0.3;
+	contourlinefactor = 0;
 	
 	// kinect depth clipping
 	nearclip = 750;
@@ -46,9 +47,9 @@ void ofApp::setup(){
 	
 	/* Limit the valid elevation range to the extent of the height color map: */
 	//if(elevationMin<heightMap.getScalarRangeMin())
-		elevationMin=heightMap.getScalarRangeMin();
+	elevationMin=heightMap.getScalarRangeMin();
 	//if(elevationMax>heightMap.getScalarRangeMax())
-		elevationMax=heightMap.getScalarRangeMax();
+	elevationMax=heightMap.getScalarRangeMax();
 	
     // kinectgrabber: setup
 	kinectgrabber.setup();
@@ -62,8 +63,8 @@ void ofApp::setup(){
 	StabilityTimeInMs = 500;
 	maxReprojError = 2.0f;
 	chessboardThreshold = 60;
-	horizontalMirror = true;
-	verticalMirror = true;
+	horizontalMirror = false;//true;
+	verticalMirror = false;//true;
 	
 	// Calibration setup: make the wrapper (to make calibration independant of the drivers...)
     kinectWrapper = new RGBDCamCalibWrapperOfxKinect();
@@ -73,12 +74,14 @@ void ofApp::setup(){
     kinectProjectorCalibration.chessboardSize = chessboardSize;
     kinectProjectorCalibration.chessboardColor = chessboardColor;
     kinectProjectorCalibration.setStabilityTimeInMs(StabilityTimeInMs);
-    kinectProjectorCalibration.setMirrors(true, true);
-	depthProjection = kinectgrabber.getProjMatrix();
+    kinectProjectorCalibration.setMirrors(false, false);
+//	depthProjection = kinectgrabber.getProjMatrix();
+	depthProjVector = kinectgrabber.getProjVector();
 	
-	basePlane = Geometry::Plane<double, 3>(Geometry::Vector<double, 3>(0,0,1),Geometry::Point<double, 3>(0,0,-950));
+	basePlane = Geometry::Plane<double, 3>(Geometry::Vector<double, 3>(0,0,1),Geometry::Point<double, 3>(0,0,-870));
 	
 	kinectgrabber.setupFramefilter(numAveragingSlots, gradFieldresolution,nearclip, farclip, depthProjection, basePlane, elevationMin, elevationMax);
+	kinectgrabber.setKinectROI(kinectROI);
 	//    maxReprojError = maxReprojError;
     // sets the output
     kinectProjectorOutput.setup(kinectWrapper, projectorWidth, projectorHeight);
@@ -87,9 +90,8 @@ void ofApp::setup(){
 	//kinectProjectorOutput.load("kinectProjector.yml");
 	
     // prepare shaders and fbo
-	contourlinefactor = 50;
     shader.load( "shaderVert.c", "shaderFrag.c" );
-    fbo.allocate( projectorWidth, projectorHeight);
+    fbo.allocate( 640, 480);
 	
 	FilteredDepthImage.allocate(640, 480);
 	FilteredDepthImage.setUseTexture(true);
@@ -97,10 +99,11 @@ void ofApp::setup(){
 	// setup the gui
     setupGui();
 	
-	surfaceRenderer=new SurfaceRenderer(640,480,depthProjection,basePlane);
-	surfaceRenderer->setHeightMapRange(heightMap.getNumEntries(),heightMap.getScalarRangeMin(),heightMap.getScalarRangeMax());
-	surfaceRenderer->setContourLineDistance(contourlinefactor/10);
-
+//	surfaceRenderer=new SurfaceRenderer(640,480,depthProjection,basePlane);
+//	surfaceRenderer->setHeightMapRange(heightMap.getNumEntries(),heightMap.getScalarRangeMin(),heightMap.getScalarRangeMax());
+//	surfaceRenderer->setContourLineDistance(contourlinefactor/10);
+//	surfaceRenderer->setDrawContourLines(false);
+	
 	kinectgrabber.startThread();
 }
 
@@ -108,11 +111,26 @@ void ofApp::setup(){
 void ofApp::update(){
 	
 	// Get depth image from kinect grabber
-	ofShortPixels filteredframe;
 	if (kinectgrabber.filtered.tryReceive(filteredframe)) {
-		///		// If true, `filteredframe` can be used.
-		surfaceRenderer->setDepthImage(filteredframe);
-		FilteredDepthImage.setFromPixels(filteredframe);
+//		// If true, `filteredframe` can be used.
+//		float maxval = 0.0;
+//		for (int i = 0; i<640*480; i ++)
+//			if (filteredframe.getData()[i] >maxval)
+//				maxval = filteredframe.getData()[i];
+//		cout << "maxval 2: "<< maxval << endl;
+//		surfaceRenderer->setDepthImage(filteredframe);
+		
+//		ofFloatPixels mappedData;
+//		mappedData.allocate(640,480, 1);
+//		for (int i = 0; i<640*480; i ++)
+//			mappedData.getData()[i] = filteredframe.getData()[i]/maxval;
+		FilteredDepthImage.setFromPixels(filteredframe.getData(), 640, 480);
+//		float maxval = 0.0;
+//		for (int i = 0; i<640*480; i ++)
+//			if (FilteredDepthImage.getFloatPixelsRef().getData()[i] >maxval)
+//				maxval = FilteredDepthImage.getFloatPixelsRef().getData()[i];
+//		cout << "maxval 2: "<< maxval << endl;
+		//FilteredDepthImage.contrastStretch();//(0.0, 1.0);
 		FilteredDepthImage.updateTexture();
 		
 		kinectgrabber.lock();
@@ -122,14 +140,29 @@ void ofApp::update(){
 		
 		thresholdedImage.setFromPixels(FilteredDepthImage.getPixels());
 		
+
 		if (enableTestmode){
+			/* Calculate the new height map elevation scaling and offset coefficients: */
+			float hms=float(heightMap.getNumEntries())/((heightMap.getScalarRangeMax()-heightMap.getScalarRangeMin())*float(heightMap.getNumEntries()));
+			float hmo=0.5/float(heightMap.getNumEntries())-hms*heightMap.getScalarRangeMin();
+		
+			float depthvalue = 870-FilteredDepthImage.getFloatPixelsRef().getColor(320, 240).r; //get depth value, normally in [0..1]
+			float heightColorMapTexCoord = (depthvalue*hms+hmo)*255;
+			ofTexture tex;
+			tex.loadData(filteredframe);
+			
 			fbo.begin(); // drawing colormap texture to shader
+			ofClear(0);
 			shader.begin();
+			shader.setUniformTexture( "texture0", tex, 2 ); //"1" means that it is texture 1
 			shader.setUniformTexture( "texture1", heightMap.getTexture(), 1 ); //"1" means that it is texture 1
 			shader.setUniform1f("texsize", 255 );
 			shader.setUniform1f("contourLineFactor", contourlinefactor);
-			ofSetColor( 255, 255, 255 );
-			FilteredDepthImage.draw(0, 0);//, projectorWidth, projectorHeight);
+			shader.setUniform1f("heightMapScale", hms);
+			shader.setUniform1f("heightMapOffset", hmo);
+			shader.setUniform1f("baseline", 870);
+			//ofSetColor( 255, 255, 255 );
+			thresholdedImage.draw(0, 0);//, projectorWidth, projectorHeight);
 			//fbo.draw( 0, 0 );//,projectorWidth, projectorHeight);
 			//mesh.draw();
 			shader.end();
@@ -143,20 +176,36 @@ void ofApp::update(){
 			//Set up vertices and colors
 			mesh.clear();
 			
-			ofPoint wrld;
-			int indx, indy;
-			float indz;
-			for (int y=0; y<meshheight; y++) {
-				for (int x=0; x<meshwidth; x++) {
-					indx = 640/(meshwidth-1)*x;
-					indy = 480/(meshheight-1)*y;
-					indz = farclip;//(255.0-filteredframe.getData()[indy*640+indx])/255.0*(farclip-nearclip)+nearclip;
-					wrld = kinectgrabber.kinect.getWorldCoordinateAt(indx, indy, indz);
-					mesh.addVertex(wrld);
-					//mesh.addColor( ofColor( 0, 0, 0 ) );
-					mesh.addTexCoord( ofPoint( indx,indy ) );
-				}
+			ofPoint worldCoord[4];
+			ofPoint screen_Cv[4];
+			ofPoint screen_GL[4];
+			
+			ofPoint kinectCoord[]={kinectROI.getTopLeft(), kinectROI.getTopRight(), kinectROI.getBottomRight(),kinectROI.getBottomLeft()};
+			
+			for (int i = 0; i <4; i++){
+				kinectCoord[i].z = farclip;
+				worldCoord[i] =  kinectgrabber.kinect.getWorldCoordinateAt(kinectCoord[i].x, kinectCoord[i].y, kinectCoord[i].z);
+				screen_Cv[i] = kinectProjectorOutput.project(Vec3f(worldCoord[i].x, worldCoord[i].y, worldCoord[i].z));
+				screen_GL[i] = kinectProjectorOutput.worldToScreen(worldCoord[i]);
+				mesh.addVertex(worldCoord[i]);//ofPoint(indx, indy, indz));//
+				//mesh.addColor( ofColor( 0, 0, 0 ) );
+				mesh.addTexCoord( ofPoint( kinectCoord[i].x, kinectCoord[i].y ) );
 			}
+
+//			ofPoint wrld;
+//			int indx, indy;
+//			float indz;
+//			for (int y=0; y<meshheight; y++) {
+//				for (int x=0; x<meshwidth; x++) {
+//					indx = 640/(meshwidth-1)*x;
+//					indy = 480/(meshheight-1)*y;
+//					indz = 870;//(255.0-filteredframe.getData()[indy*640+indx])/255.0*(farclip-nearclip)+nearclip;
+//					wrld = kinectgrabber.kinect.getWorldCoordinateAt(indx, indy, indz);
+//					mesh.addVertex(wrld);//ofPoint(indx, indy, indz));//
+//					//mesh.addColor( ofColor( 0, 0, 0 ) );
+//					mesh.addTexCoord( ofPoint( indx,indy ) );
+//				}
+//			}
 			//Set up triangles' indices
 			for (int y=0; y<meshheight-1; y++) {
 				for (int x=0; x<meshwidth-1; x++) {
@@ -171,7 +220,6 @@ void ofApp::update(){
 			setNormals( mesh );			//Set normals to the surface
 		}
 	}
-	
 	if (enableCalibration) {
 		// Get color image from kinect grabber
 		ofPixels coloredframe;
@@ -246,8 +294,9 @@ void ofApp::update(){
 						kinectROI.height = -kinectROI.height;
 					}
 					kinectROI.standardize();
-					// We are finished, set back kinect depth range
+					// We are finished, set back kinect depth range and update ROI
 					gotROI = 3;
+					kinectgrabber.setKinectROI(kinectROI);
 					kinectgrabber.nearclipchannel.send(nearclip);
 					kinectgrabber.farclipchannel.send(farclip);
 					//}
@@ -328,6 +377,9 @@ void ofApp::draw(){
 		//		ofTranslate(-(320+20), -(20+240+20+40+20));
 		//
 	} else if (enableTestmode) {
+		ofDrawBitmapString("Camera getGlobalOrientation: " + ofToString(kinectProjectorOutput.camera.getGlobalOrientation()), 0, 40);
+		ofDrawBitmapString("Camera getGlobalPosition: " + ofToString(kinectProjectorOutput.camera.getGlobalPosition()), 0, 60);
+
 		ofDrawBitmapString("Grayscale Image",0,20+240+20+40);
 		FilteredDepthImage.draw(0,20+240+40+40,320,240);
 		
@@ -359,26 +411,28 @@ void ofApp::drawProj(ofEventArgs & args){
 	if (enableCalibration) {
 		
 		// draw the chessboard to our second window
-		fbo.begin();		//Start drawing grayscale depth image into buffer
-		ofClear(0);
-		ofSetColor(255, 170, 170);
 		kinectProjectorCalibration.drawChessboard();
-		fbo.end();			//End drawing into buffer
-		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
 	} else if (enableTestmode) {
 		
-		//		glPushMatrix();
-		//		glMultMatrixf(matrix);
-		//		glPushMatrix();
-		//		fbo.draw(0, 0);
-		//		glPopMatrix();
-		//		glPopMatrix();
-		
+//		glPushMatrix();
+//		glMultMatrixf(matrix);
+//		glPushMatrix();
+//		fbo.draw(0, 0);
+//		glPopMatrix();
+//		glPopMatrix();
+
+		//		glCullFace(GL_CW);
+//		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+//		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		kinectProjectorOutput.loadCalibratedView();
-//		fbo.getTexture().bind();
-//		mesh.draw();
-//		fbo.getTexture().unbind();
-		surfaceRenderer->glRenderSinglePass(heightMap.getTexture());
+//		kinectProjectorOutput.camera.begin();
+//		ofBackgroundGradient( ofColor( 255 ), ofColor( 0 ) );
+		fbo.getTexture().bind();
+		mesh.draw();
+		fbo.getTexture().unbind();
+//		kinectProjectorOutput.camera.end();
+
+//		surfaceRenderer->glRenderSinglePass(heightMap.getTexture());
 		kinectProjectorOutput.unloadCalibratedView();
 		
 		//		kinectgrabber.framefilter.displayFlowField();
@@ -412,7 +466,7 @@ void ofApp::drawProj(ofEventArgs & args){
 		fbo.begin();		//Start drawing grayscale depth image into buffer
 		ofClear(0);
 		ofSetColor(255, 170, 170);
-		FilteredDepthImage.ofBaseDraws::draw(0, 0, projectorWidth, projectorHeight);
+		FilteredDepthImage.draw(0, 0);//, projectorWidth, projectorHeight);
 		fbo.end();			//End drawing into buffer
 		
 		//		fbo.draw( 0, 0 ,projectorWidth, projectorHeight);
@@ -526,6 +580,7 @@ void ofApp::setupGui() {
 	gui->addSpacer(length, 2);
 	gui->addWidgetDown(new ofxUIToggle("Activate calibration mode", &enableCalibration, dim, dim));
 	gui->addWidgetDown(new ofxUIToggle("Activate game mode", &enableGame, dim, dim));
+	gui->addWidgetDown(new ofxUIButton("Reset Cam Place", false, dim, dim));
 	
 	gui->addWidgetDown(new ofxUILabel(" ", OFX_UI_FONT_MEDIUM));
 	gui->addSpacer(length, 2);
@@ -560,7 +615,8 @@ void ofApp::setupGui() {
 	guiImageSettings->addWidgetDown(new ofxUILabel("errorLabel", "Avg Reprojection error: 0.0", OFX_UI_FONT_SMALL));
 	guiImageSettings->addWidgetDown(new ofxUILabel("capturesLabel", "Number of captures: 0", OFX_UI_FONT_SMALL));
 	
-	guiImageSettings->addWidgetDown(new ofxUIToggle("Activate test mode", &enableTestmode, dim, dim));
+	guiImageSettings->addWidgetDown(new ofxUIButton("Save calibration", false, dim, dim));
+	guiImageSettings->addWidgetDown(new ofxUIToggle("Back to test mode", &enableTestmode, dim, dim));
 	guiImageSettings->addWidgetDown(new ofxUIToggle("Horizontal mirror", &horizontalMirror, dim, dim));
 	guiImageSettings->addWidgetDown(new ofxUIToggle("Vertical Mirror", &verticalMirror, dim, dim));
 	//	guiImageSettings->addSpacer(length, 2);
@@ -623,7 +679,7 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 			enableCalibration = false;
 			enableGame = true;
 		}
-	} else if (name == "Activate test mode") {
+	} else if (name == "Back to test mode") {
 		ofxUIButton* b = (ofxUIButton*)e.widget;
 		if(b->getValue()) {
 			enableTestmode = true;
@@ -637,6 +693,12 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 			guiMappingSettings->setVisible(true);
 			//			gui->setVisible(true);
 		}
+	} else if (name == "Save calibration") {
+		ofxUIButton* b = (ofxUIButton*)e.widget;
+		if(b->getValue()) kinectProjectorCalibration.save("kinectProjector.yml", true);
+	} else if (name == "Reset Cam Place") {
+		ofxUIButton* b = (ofxUIButton*)e.widget;
+		if(b->getValue()) setupView();
 	} else if (name == "Activate calibration mode") {
 		ofxUIButton* b = (ofxUIButton*)e.widget;
 		if(b->getValue()){
@@ -670,11 +732,14 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 //--------------------------------------------------------------
 void ofApp::setupView() {
 	kinectProjectorOutput.load("kinectProjector.yml");
-	ofPoint des[4];
+
+	ofPoint des[4], dest[4];
 	ofPoint src[]={kinectROI.getTopLeft(), kinectROI.getTopRight(), kinectROI.getBottomRight(),kinectROI.getBottomLeft()};
+	ofRectangle viewport = ofRectangle(ofPoint(0,0), projWindow->getWindowSize());
 	for (int i = 0; i <4; i++){
 		src[i].z = farclip;
 		des[i] = kinectProjectorOutput.projectFromDepthXYZ(src[i]);
+		dest[i] = kinectProjectorOutput.camera.worldToScreen(src[i], viewport);
 	}
 	//ofPoint(0,0),ofPoint(image.width,0),ofPoint(image.width,image.height),ofPoint(0,image.height)};
 	

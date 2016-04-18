@@ -88,15 +88,16 @@ private:
 	PTransform depthProjection; // The transformation from depth image space to camera space
 	Plane basePlane; // Base plane to calculate surface elevation
 
-    int threshold;
+    float threshold;
     ofPolyline large;
     
     float contourlinefactor;
     bool horizontalMirror, verticalMirror;
     float                       lowThresh;
     float                       highThresh;
-
+    ofVec3f depthProjVector;
     ofShader                    shader;            //Shader
+    ofEasyCam cam;
     ofFbo                       fbo;			//Buffer for intermediate drawing
     ColorMap                    heightMap;
     KinectGrabber               kinectgrabber;
@@ -106,14 +107,16 @@ private:
     KinectProjectorCalibration	kinectProjectorCalibration;
     KinectProjectorOutput	kinectProjectorOutput;
 
-    ofMesh mesh;
+    ofVboMesh mesh;
     int meshwidth;          //Mesh size
     int meshheight;
     
     GLfloat matrix[16];
     
+    ofFloatPixels filteredframe;
     ofxCvContourFinder        contourFinder;
-    ofxCvGrayscaleImage     FilteredDepthImage, thresholdedImage;
+    ofxCvFloatImage     FilteredDepthImage;
+    ofxCvGrayscaleImage thresholdedImage;
     ofxCvColorImage         kinectColorImage;
     ofVec2f*                gradientField;
     

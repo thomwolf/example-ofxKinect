@@ -33,14 +33,14 @@ bool FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int
 	
 	/* Initialize the valid depth range: */
 	setValidDepthInterval(0U,2046U);
-		
+    
 	/* Initialize the averaging buffer: */
 	numAveragingSlots=sNumAveragingSlots;
     
 	/* Initialize the stability criterion: */
     minNumSamples=(numAveragingSlots+1)/2;
-    	maxVariance=4;
-    	hysteresis=0.1f;
+    maxVariance=4;
+    hysteresis=0.1f;
 	retainValids=true;
 	instableValue=0.0;
     maxgradfield = 1000;
@@ -49,9 +49,9 @@ bool FrameFilter::setup(const unsigned int swidth,const unsigned int sheight,int
     farclip = sfarclip;
     depthrange = sfarclip-snearclip;
     
-//    minNumSamples=(numAveragingSlots+1)/2;
-//    maxVariance=newMaxVariance;
-//    hysteresis=newHysteresis;
+    //    minNumSamples=(numAveragingSlots+1)/2;
+    //    maxVariance=newMaxVariance;
+    //    hysteresis=newHysteresis;
 	
 	/* Enable spatial filtering: */
     //	spatialFilter=true;
@@ -125,11 +125,11 @@ void FrameFilter::initiateBuffers(void){
                 *sbPtr=0;
     
     /* Initialize the valid buffer: */
-    validBuffer=new RawDepth[height*width];
-    RawDepth* vbPtr=validBuffer;
+    validBuffer=new float[height*width];
+    float* vbPtr=validBuffer;
     for(unsigned int y=0;y<height;++y)
         for(unsigned int x=0;x<width;++x,++vbPtr)
-            *vbPtr=0;
+            *vbPtr=0.0;
     
     /* Initialize the gradient field buffer: */
     gradField = new ofVec2f[gradFieldcols*gradFieldrows];
@@ -236,7 +236,8 @@ void FrameFilter::drawArrow(ofVec2f v1)
     //ofDrawLine(-length/2 + length*0.8, length*-0.1, length/2, 0);
 }
 
-ofShortPixels FrameFilter::filter(ofShortPixels inputframe){
+ofFloatPixels FrameFilter::filter(ofShortPixels inputframe, ofRectangle kinectROI)
+{
     // wait until there's a new frame
     // this blocks the thread, so it doesn't use
     // the CPU at all, until a frame arrives.
@@ -256,8 +257,10 @@ ofShortPixels FrameFilter::filter(ofShortPixels inputframe){
     //    ofPixels inputframe = convertProjSpace(sinputframe);
     
     // Create a new output frame: */
-    ofShortPixels newOutputFrame;
+    ofFloatPixels newOutputFrame;
     newOutputFrame.allocate(width, height, 1);
+    
+    float maxval = 0.0;
     
     /* Initialize a new gradient field buffer and number of valid gradient measures */
     //    ofVec2f* valgradField = new ofVec2f[gradFieldcols*gradFieldrows];
@@ -275,28 +278,27 @@ ofShortPixels FrameFilter::filter(ofShortPixels inputframe){
     const RawDepth* ifPtr=static_cast<const RawDepth*>(inputframe.getData());
     RawDepth* abPtr=averagingBuffer+averagingSlotIndex*height*width;
     unsigned int* sPtr=statBuffer;
-    RawDepth* ofPtr=validBuffer; // static_cast<const float*>(outputFrame.getBuffer());
-    RawDepth* nofPtr=static_cast<RawDepth*>(newOutputFrame.getData());
+    float* ofPtr=validBuffer; // static_cast<const float*>(outputFrame.getBuffer());
+    float* nofPtr=static_cast<float*>(newOutputFrame.getData());
     float z;
     
     for(unsigned int y=0;y<height;++y)
     {
-                    float py=float(y)+0.5f;
+        float py=float(y)+0.5f;
         for(unsigned int x=0;x<width;++x,++ifPtr,++abPtr,sPtr+=3,++ofPtr,++nofPtr)
         {
-                            float px=float(x)+0.5f;
-            
+            float px=float(x)+0.5f;
             unsigned int oldVal=*abPtr;
             unsigned int newVal=*ifPtr;
             
-                    /* Depth-correct the new value: */
+            /* Depth-correct the new value: */
             float newCVal=newVal; //pdcPtr->correct(newVal); No per pîxel correction
-
+            
             /* Plug the depth-corrected new value into the minimum and maximum plane equations to determine its validity: */
             float minD=minPlane[0]*px+minPlane[1]*py+minPlane[2]*newCVal+minPlane[3];
             float maxD=maxPlane[0]*px+maxPlane[1]*py+maxPlane[2]*newCVal+maxPlane[3];
-            if(minD>=0.0f&&maxD<=0.0f)
- //           if(newVal != 0 && newVal != 255) // Pixel depth not clipped => inside valide range
+            if(kinectROI.inside(x, y))//minD>=0.0f&&maxD<=0.0f)
+                //           if(newVal != 0 && newVal != 255) // Pixel depth not clipped => inside valide range
             {
                 /* Store the new input value: */
                 *abPtr=newVal;
@@ -337,9 +339,11 @@ ofShortPixels FrameFilter::filter(ofShortPixels inputframe){
                 {
                     /* Set the output pixel value to the depth-corrected running mean: */
                     *nofPtr=*ofPtr=newFiltered;
+                    if (newFiltered > maxval)
+                        maxval = newFiltered;
                     // Update world coordonate of point
-//                    z = (255.0-newFiltered)/255.0*(farclip-nearclip)+nearclip;
-//                    wrldcoordbuffer[y*width+x]=toCv(backend->getWorldCoordinateAt(x, y, z));
+                    //                    z = (255.0-newFiltered)/255.0*(farclip-nearclip)+nearclip;
+                    //                    wrldcoordbuffer[y*width+x]=toCv(backend->getWorldCoordinateAt(x, y, z));
                 }
                 else
                 {
@@ -373,7 +377,7 @@ ofShortPixels FrameFilter::filter(ofShortPixels inputframe){
             for(unsigned int x=0;x<width;++x)
             {
                 /* Get a pointer to the current column: */
-                RawDepth* colPtr=static_cast<RawDepth*>(newOutputFrame.getData())+x;
+                float* colPtr=static_cast<float*>(newOutputFrame.getData())+x;
                 
                 /* Filter the first pixel in the column: */
                 float lastVal=*colPtr;
@@ -392,7 +396,7 @@ ofShortPixels FrameFilter::filter(ofShortPixels inputframe){
                 /* Filter the last pixel in the column: */
                 *colPtr=(lastVal+colPtr[0]*2.0f)/3.0f;
             }
-            RawDepth* rowPtr=static_cast<RawDepth*>(newOutputFrame.getData());
+            float* rowPtr=static_cast<float*>(newOutputFrame.getData());
             for(unsigned int y=0;y<height;++y)
             {
                 /* Filter the first pixel in the row: */
@@ -430,6 +434,7 @@ ofShortPixels FrameFilter::filter(ofShortPixels inputframe){
     //            if (newOutputFrame.getData()[y]<minn && newOutputFrame.getData()[y]!=0)
     //                minn =newOutputFrame.getData()[y];
     //        }
+    cout << "maxval 1: "<< maxval << endl;
     
     outputframe=newOutputFrame;
     updateGradientField();
@@ -453,7 +458,7 @@ void FrameFilter::updateGradientField()
     float gy;
     int gvx, gvy;
     float lgth = 0;
-    RawDepth* nofPtr=outputframe.getData();
+    float* nofPtr=outputframe.getData();
     for(unsigned int y=0;y<gradFieldrows;++y) {
         for(unsigned int x=0;x<gradFieldcols;++x) {
             //            if (x==7 && y ==7)

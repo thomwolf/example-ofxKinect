@@ -79,6 +79,7 @@ void KinectGrabber::setupClip(float snearclip, float sfarclip){
 void KinectGrabber::setTestmode(){
     enableTestmode = true;
     enableCalibration = false;
+    framefilter.resetBuffers();
 }
 
 void KinectGrabber::setCalibrationmode(){
@@ -91,7 +92,12 @@ bool KinectGrabber::isFrameNew(){
 	return newFrame;
 }
 
+void KinectGrabber::setKinectROI(ofRectangle skinectROI){
+    kinectROI = skinectROI;
+}
+
 KinectGrabber::PTransform KinectGrabber::getProjMatrix(void) {
+    double shift_scale = 10; // To shift from cm (native Kinect data) to mm
 	float referencePixelSize = kinect.getZeroPlanePixelSize();
     float referenceDistance = kinect.getZeroPlaneDistance();
     float dcmosEmitterDist = kinect.getSensorEmitterDistance();
@@ -99,7 +105,7 @@ KinectGrabber::PTransform KinectGrabber::getProjMatrix(void) {
     
 //	ofMatrix4x4 depthMatrix = ofMatrix4x4(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     /* Calculate the depth-to-distance conversion formula: */
-    double numerator=(4.0*double(dcmosEmitterDist)*double(referenceDistance))/double(referencePixelSize);
+    double numerator=(4.0*shift_scale*double(dcmosEmitterDist)*double(referenceDistance))/double(referencePixelSize);
     double denominator=4.0*double(dcmosEmitterDist)/double(referencePixelSize)+4.0*double(constantShift)+1.5;
     
     /* Calculate the unprojection scale factor: */
@@ -111,6 +117,25 @@ KinectGrabber::PTransform KinectGrabber::getProjMatrix(void) {
     PTransform::Matrix& depthMatrix=depthProjection.getMatrix();
     
     //depthMatrix=PTransform::Matrix::zero;
+    // With depth compensation and registration
+//    depthMatrix(0,0)=scale;
+//    depthMatrix(0,1)=0;
+//    depthMatrix(0,2)=0;
+//    depthMatrix(0,3)=-scale*double(DEPTH_X_RES)*0.5;
+//    depthMatrix(1,0)=0;
+//    depthMatrix(1,1)=scale;
+//    depthMatrix(1,2)=0;
+//    depthMatrix(1,3)=-scale*double(DEPTH_Y_RES)*0.5;
+//    depthMatrix(2,0)=0;
+//    depthMatrix(2,1)=0;
+//    depthMatrix(2,2)=0;
+//    depthMatrix(2,3)=-1.0;
+//    depthMatrix(3,0)=0;
+//    depthMatrix(3,1)=0;
+//    depthMatrix(3,2)=-1.0/numerator;
+//    depthMatrix(3,3)=denominator/numerator;
+    
+    // With depth already compensated and no registration
     depthMatrix(0,0)=scale;
     depthMatrix(0,1)=0;
     depthMatrix(0,2)=0;
@@ -125,10 +150,20 @@ KinectGrabber::PTransform KinectGrabber::getProjMatrix(void) {
     depthMatrix(2,3)=-1.0;
     depthMatrix(3,0)=0;
     depthMatrix(3,1)=0;
-    depthMatrix(3,2)=-1.0/numerator;
-    depthMatrix(3,3)=denominator/numerator;
-    
+    depthMatrix(3,2)=0;
+    depthMatrix(3,3)=1;
     return depthProjection;
+}
+
+ofVec3f KinectGrabber::getProjVector(void) {
+ 	float referencePixelSize = kinect.getZeroPlanePixelSize();
+    float referenceDistance = kinect.getZeroPlaneDistance();
+
+    /* Calculate the unprojection scale factor: */
+    float scale=2.0*referencePixelSize/referenceDistance;
+    
+    // With depth already compensated and no registration
+    return ofVec3f(float(DEPTH_X_RES)*0.5, float(DEPTH_Y_RES)*0.5, scale);
 }
 
 //ofPixels KinectGrabber::convertProjSpace(ofPixels inputframe){
@@ -218,11 +253,8 @@ void KinectGrabber::threadedFunction(){
             
             if(kinect.isFrameNew()){
                 newFrame = true;
-                //		kinectColorImage.setFromPixels(kinect.getPixels());
-                kinectDepthImage = kinect.getRawDepthPixels();
-                //		kinectColoredDepth.setFromPixels(kinectDepthImage.getPixels());
-                
                 if (enableCalibration) {
+                    kinectDepthImage = kinect.getDepthPixels();
                     kinectColorImage.setFromPixels(kinect.getPixels());
                     // If new filtered image => send back to main thread
 #if __cplusplus>=201103
@@ -239,8 +271,9 @@ void KinectGrabber::threadedFunction(){
                 }
                 // if the test mode is activated, the settings are loaded automatically (see gui function)
                 if (enableTestmode) {
-                    ofShortPixels filteredframe;//, kinectProjImage;
-                    filteredframe = framefilter.filter(kinectDepthImage);
+                    kinectDepthImage = kinect.getRawDepthPixels();
+                    ofFloatPixels filteredframe;//, kinectProjImage;
+                    filteredframe = framefilter.filter(kinectDepthImage, kinectROI);
                     filteredframe.setImageType(OF_IMAGE_GRAYSCALE);
 //                    wrldcoord = framefilter.getWrldcoordbuffer();
 //                    kinectProjImage = convertProjSpace(filteredframe);

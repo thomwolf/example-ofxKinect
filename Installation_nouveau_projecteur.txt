@@ -1,0 +1,4 @@
+A faire lors de la configuration du nouveau projecteur:
+- désactiver la recopie vidéo
+- sélectionner la résolution "optimisé pour l'écran"
+- placer l'écran à gauche du bureau ?

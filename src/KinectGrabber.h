@@ -27,6 +27,7 @@ public:
     void setupCalibration(int projectorWidth, int projectorHeight, float schessboardSize, float schessboardColor, float sStabilityTimeInMs, float smaxReprojError);
     void setCalibrationmode();
     void setTestmode();
+    void setKinectROI(ofRectangle skinectROI);
     //void update();
 //    ofPixels convertProjSpace(ofPixels sinputframe);
 	bool isFrameNew();
@@ -34,8 +35,9 @@ public:
 	ofPixels & getPixels();
 	ofTexture & getTexture();
     PTransform getProjMatrix(void); // Get unprojection matrix of the kinect
+    ofVec3f getProjVector(void); // Kinect unprojection factors: (shift x, shift y, scale factor)
     
-	ofThreadChannel<ofShortPixels> filtered;
+	ofThreadChannel<ofFloatPixels> filtered;
 	ofThreadChannel<ofPixels> colored;
 	ofThreadChannel<ofVec2f*> gradient;
 	ofThreadChannel<float> nearclipchannel;
@@ -64,6 +66,7 @@ private:
     ofShortPixels     kinectDepthImage;
     //   ofImage                 kinectColoredDepth;
     float maxReprojError;
+    ofRectangle                 kinectROI;
     // calibration
     // output
 };

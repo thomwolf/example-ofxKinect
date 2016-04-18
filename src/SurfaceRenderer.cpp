@@ -50,6 +50,7 @@ animationTime(0.0)
 	/* Initialize the depth image: */
     depthImage.allocate(width, height, 1);
     depthImage.set(0);
+    initContext();
 }
 
 void SurfaceRenderer::initContext()
@@ -73,10 +74,12 @@ void SurfaceRenderer::initContext()
     depthTexture.allocate(depthImage);
 	
 	// Load shaders
-    elevationShader.load( "SurfaceElevationShader.vs", "SurfaceElevationShader.fs" );
+    elevationShader.load("SurfaceElevationShader.vs", "SurfaceElevationShader.fs" );
     heightMapShader.load("heightMapShader.vs", "heightMapShader.fs");
     
-    
+	// Initialize the fbos
+    fbo.allocate(800, 600, GL_RGBA); // with alpha, 8 bits red, 8 bits green, 8 bits blue, 8 bits alpha, from 0 to 255 in 256 steps
+    contourLineFramebufferObject.allocate(801, 601, GL_RGBA);
 }
 
 void SurfaceRenderer::setUsePreboundDepthTexture(bool newUsePreboundDepthTexture)
@@ -133,35 +136,35 @@ void SurfaceRenderer::glPrepareContourLines()
      Marching Squares contour line extraction.
      *********************************************************************/
 	
-	/* Query the current viewport: */
-	GLint viewport[4];
-	glGetIntegerv(GL_VIEWPORT,viewport);
-	
-	/* Save the currently-bound frame buffer and clear color: */
-	GLint currentFrameBuffer;
-	glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT,&currentFrameBuffer);
-	GLfloat currentClearColor[4];
-	glGetFloatv(GL_COLOR_CLEAR_VALUE,currentClearColor);
-	
-	/* Check if the contour line frame buffer needs to be created or resized */
-    if (!contourLineFramebufferObject.isAllocated()||contourLineFramebufferSize[0]!=viewport[2]+1||contourLineFramebufferSize[1]!=viewport[3]+1) {
-        for(int i=0;i<2;++i)
-            contourLineFramebufferSize[i]=viewport[2+i]+1;
-        contourLineFramebufferObject.allocate(contourLineFramebufferSize[0], contourLineFramebufferSize[1]);
-    }
-	
-	/* Extend the viewport to render the corners of the final pixels: */
-	glViewport(0,0,viewport[2]+1,viewport[3]+1);
-	glClearColor(0.0f,0.0f,0.0f,1.0f);
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+//	/* Query the current viewport: */
+//	GLint viewport[4];
+//	glGetIntegerv(GL_VIEWPORT,viewport);
+//	
+//	/* Save the currently-bound frame buffer and clear color: */
+//	GLint currentFrameBuffer;
+//	glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT,&currentFrameBuffer);
+//	GLfloat currentClearColor[4];
+//	glGetFloatv(GL_COLOR_CLEAR_VALUE,currentClearColor);
+//	
+//	/* Check if the contour line frame buffer needs to be created or resized */
+//    if (!contourLineFramebufferObject.isAllocated()||contourLineFramebufferSize[0]!=viewport[2]+1||contourLineFramebufferSize[1]!=viewport[3]+1) {
+//        for(int i=0;i<2;++i)
+//            contourLineFramebufferSize[i]=viewport[2+i]+1;
+//        contourLineFramebufferObject.allocate(contourLineFramebufferSize[0], contourLineFramebufferSize[1]);
+//    }
+//	
+//	/* Extend the viewport to render the corners of the final pixels: */
+//	glViewport(0,0,viewport[2]+1,viewport[3]+1);
+//	glClearColor(0.0f,0.0f,0.0f,1.0f);
+//	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	
 	/* Adjust the projection matrix to render the corners of the final pixels: */
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	GLdouble proj[16];
 	glGetDoublev(GL_PROJECTION_MATRIX,proj);
-	GLdouble xs=GLdouble(viewport[2])/GLdouble(viewport[2]+1);
-	GLdouble ys=GLdouble(viewport[3])/GLdouble(viewport[3]+1);
+	GLdouble xs=GLdouble(800)/GLdouble(801);
+	GLdouble ys=GLdouble(600)/GLdouble(601);
 	for(int j=0;j<4;++j)
     {
 		proj[j*4+0]*=xs;
@@ -177,6 +180,7 @@ void SurfaceRenderer::glPrepareContourLines()
 	
 	/* start the elevation shader and contourLineFramebufferObject: */
     contourLineFramebufferObject.begin();
+    ofClear(255,255,255, 0);
 	elevationShader.begin();
 	
 	/* Set up the depth image texture: */
@@ -196,15 +200,14 @@ void SurfaceRenderer::glPrepareContourLines()
     }
 	
     elevationShader.setUniformTexture( "depthSampler", depthTexture, 1 ); //"1" means that it is texture 1
-	/* Upload the base plane equation: */
-    elevationShader.setUniform4f("basePlane",basePlaneEq);
     elevationShader.setUniformMatrix4f("depthProjection",depthProjectionMatrix);
+    elevationShader.setUniform4f("basePlane",basePlaneEq);
 	
 	/* Draw the surface: */
     mesh.draw();
 	
-    contourLineFramebufferObject.end();
     elevationShader.end();
+    contourLineFramebufferObject.end();
 	
 	/*********************************************************************
      Restore previous OpenGL state.
@@ -213,11 +216,11 @@ void SurfaceRenderer::glPrepareContourLines()
 	/* Restore the original viewport and projection matrix: */
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
-	glViewport(viewport[0],viewport[1],viewport[2],viewport[3]);
-	
-	/* Restore the original clear color and frame buffer binding: */
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,currentFrameBuffer);
-	glClearColor(currentClearColor[0],currentClearColor[1],currentClearColor[2],currentClearColor[3]);
+//	glViewport(viewport[0],viewport[1],viewport[2],viewport[3]);
+//	
+//	/* Restore the original clear color and frame buffer binding: */
+//	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,currentFrameBuffer);
+//	glClearColor(currentClearColor[0],currentClearColor[1],currentClearColor[2],currentClearColor[3]);
 }
 
 void SurfaceRenderer::glRenderSinglePass(ofTexture heightColorMapTexture)
@@ -227,10 +230,13 @@ void SurfaceRenderer::glRenderSinglePass(ofTexture heightColorMapTexture)
 	if(drawContourLines)
     {
 		/* Run the first rendering pass to create a half-pixel offset texture of surface elevations: */
-		glPrepareContourLines();
+//		glPrepareContourLines();
+//        contourLineFramebufferObject.allocate(800, 600);
     }
     
 	/* Bind the single-pass surface shader: */
+    fbo.begin();
+    ofClear(255,255,255, 0);
     heightMapShader.begin();
 	
 	/* Set up the depth image texture: */
@@ -247,27 +253,28 @@ void SurfaceRenderer::glRenderSinglePass(ofTexture heightColorMapTexture)
 			depthTextureVersion=depthImageVersion;
         }
     }
+//    uniform sampler2DRect depthSampler; // Sampler for the depth image-space elevation texture
+//    uniform mat4 depthProjection; // Transformation from depth image space to camera space
+//    uniform vec4 basePlane; // Plane equation of the base plane
+//    uniform vec2 heightColorMapTransformation; // Transformation from elevation to height color map texture coordinate
+//    uniform sampler2DRect pixelCornerElevationSampler;
+//    uniform float contourLineFactor;
+//    uniform sampler1D heightColorMapSampler;
+//    
+//    varying float heightColorMapTexCoord; // Texture coordinate for the height color map
+
     heightMapShader.setUniformTexture( "depthSampler", depthTexture, 1 ); //"1" means that it is texture 1
-    heightMapShader.setUniform4f("basePlane",basePlaneEq);
-	
-	/* Upload the depth projection matrix: */
-	
-    /* Upload the base plane equation: */
-    
-    /* Upload the height color map texture coordinate transformation: */
-    heightMapShader.setUniform2f("heightColorMapTransformation",ofVec2f(heightMapScale,heightMapOffset));
-    
     heightMapShader.setUniformMatrix4f("depthProjection",depthProjectionMatrix);
-    /* Bind the height color map texture: */
-    heightMapShader.setUniformTexture("heightColorMapSampler",heightColorMapTexture, 2);
-    /* Bind the pixel corner elevation texture: */
-    heightMapShader.setUniformTexture("pixelCornerElevationSampler", contourLineFramebufferObject.getTexture(), 3);
-    
-    /* Upload the contour line distance factor: */
+    heightMapShader.setUniform4f("basePlane",basePlaneEq);
+    heightMapShader.setUniform2f("heightColorMapTransformation",ofVec2f(heightMapScale,heightMapOffset));
+//    heightMapShader.setUniformTexture("pixelCornerElevationSampler", contourLineFramebufferObject.getTexture(), 2);
     heightMapShader.setUniform1f("contourLineFactor",contourLineFactor);
+    heightMapShader.setUniformTexture("heightColorMapSampler",heightColorMapTexture, 3);
     
 	/* Draw the surface: */
     mesh.draw();
     heightMapShader.end();
+    fbo.end();
+    fbo.draw(0,0);
 }
 

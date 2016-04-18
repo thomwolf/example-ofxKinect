@@ -58,11 +58,11 @@ public:
 
     // Utilities
     bool setScalarRange(double newMin,double newMax);
-    double getScalarRangeMin(void) const // Returns minimum of scalar value range
+    float getScalarRangeMin(void) const // Returns minimum of scalar value range
     {
         return min;
     }
-    double getScalarRangeMax(void) const // Returns maximum of scalar value range
+    float getScalarRangeMax(void) const // Returns maximum of scalar value range
     {
         return max;
     }

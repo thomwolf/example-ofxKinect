@@ -60,13 +60,13 @@ public:
     void displayFlowField();
     void drawArrow(ofVec2f);
     void updateGradientField();
-    ofShortPixels filter(ofShortPixels inputframe);
+    ofFloatPixels filter(ofShortPixels inputframe, ofRectangle kinectROI);
     
 private:
     ofxKinect * backend;
 
     ofShortPixels inputframe;
-    ofShortPixels outputframe;
+    ofFloatPixels outputframe;
     ofTexture texture;
     bool newFrame;
     bool bufferInitiated;
@@ -96,7 +96,7 @@ private:
 	bool retainValids; // Flag whether to retain previous stable values if a new pixel in instable, or reset to a default value
 	float instableValue; // Value to assign to instable pixels if retainValids is false
 	bool spatialFilter; // Flag whether to apply a spatial filter to time-averaged depth values
-	RawDepth* validBuffer; // Buffer holding the most recent stable depth value for each pixel
+	float* validBuffer; // Buffer holding the most recent stable depth value for each pixel
 //	void* filterThreadMethod(void); // Method for the background filtering thread
 	
 };
